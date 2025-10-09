@@ -8,15 +8,12 @@ description: "Understand how the ZeroKeyUSB firmware is organized, from low-leve
 ZeroKeyUSB firmware is written in C++ for the **Microchip SAMD21** microcontroller.  
 It follows a layered architecture that keeps hardware drivers, security primitives, and the user interface cleanly separated.
 
-┌───────────────────────────────┐
-│ Application logic │ ← credential manager, menu flow, host commands
-├───────────────────────────────┤
-│ Services & security layer │ ← encryption, TOTP engine, PIN gatekeeper
-├───────────────────────────────┤
-│ Drivers & hardware helpers │ ← OLED, touch controller, I²C EEPROM, USB HID
-├───────────────────────────────┤
-│ SAMD21 HAL / CMSIS │
-└───────────────────────────────┘
+| Layer                     | Responsibilities                                                |
+| ------------------------- | --------------------------------------------------------------- |
+| **Application logic**     | Credential manager, menu flow, host commands.                  |
+| **Services & security**   | Encryption routines, TOTP engine, Master PIN gatekeeper.       |
+| **Drivers & helpers**     | OLED display, touch controller, I²C EEPROM, USB HID interface. |
+| **SAMD21 HAL / CMSIS**    | Vendor hardware layer that exposes the MCU peripherals.        |
 
 
 Each module can evolve independently while keeping critical security routines auditable and easy to review.
@@ -64,12 +61,12 @@ If any step fails, the firmware displays a descriptive error (e.g., `EEPROM ERRO
 
 ## Hardware abstraction layer
 
-| Driver             | Responsibilities                                                                 | Interfaces |
-| ------------------ | ------------------------------------------------------------------------------- | ---------- |
-| **Display**        | Initializes the 128×32 OLED, renders glyphs, progress bars, and smooth scrolling | I²C (400 kHz) |
-| **Touch sensor**   | Calibrates TS06 thresholds, debounces taps, detects long presses                 | I²C |
-| **EEPROM**         | Provides transactional reads/writes with I²C acknowledgment checks               | I²C |
-| **USB HID**        | Emulates a keyboard using a **US-QWERTY** layout and exposes a CDC serial endpoint | USB FS |
+| Driver         | Responsibilities                                                                 | Interfaces |
+| -------------- | ------------------------------------------------------------------------------- | ---------- |
+| **Display**    | Initializes the 128×32 OLED, renders glyphs, progress bars, and smooth scrolling | I²C (400 kHz) |
+| **Touch sensor** | Calibrates TS06 thresholds, debounces taps, detects long presses               | I²C |
+| **EEPROM**     | Provides transactional reads/writes with I²C acknowledgment checks               | I²C |
+| **USB HID**    | Emulates a keyboard using a **US-QWERTY** layout and exposes a CDC serial endpoint | USB FS |
 
 All drivers expose consistent APIs (`display.render()`, `touch.poll()`, `eeprom.write_block()`) that keep the upper layers small and auditable.
 
@@ -88,11 +85,11 @@ This deterministic design simplifies debugging and formal security review:
 
 ## Memory footprint
 
-| Region    | Size   | Description                                                  |
-| ---------- | ------ | ------------------------------------------------------------ |
-| **Flash**  | ~64 KB | Firmware code, fonts, icons, static strings.                 |
-| **SRAM**   | ~16 KB | UI buffers, decrypted credential cache, TOTP workspace.     |
-| **EEPROM** | 8 KB  | Encrypted user data, IV, PIN signature, metadata, counters.  |
+| Region     | Size   | Description                                                 |
+| ---------- | ------ | ----------------------------------------------------------- |
+| **Flash**  | ~64 KB | Firmware code, fonts, icons, static strings.                |
+| **SRAM**   | ~16 KB | UI buffers, decrypted credential cache, TOTP workspace.    |
+| **EEPROM** | 8 KB   | Encrypted user data, IV, PIN signature, metadata, counters. |
 
 The firmware is intentionally lightweight, leaving headroom for small audited features without any form of OTA or remote update.
 
