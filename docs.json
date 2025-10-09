@@ -1,12 +1,20 @@
 {
   "name": "ZeroKeyUSB Docs",
   "theme": "mint",
-  "navigation": [
-    { "group": "Introduction", "pages": ["index","getting-started"] },
-    { "group": "Hardware", "pages": ["hardware/overview","hardware/eeprom","hardware/touch-sensor"] },
-    { "group": "Firmware", "pages": ["firmware/architecture","firmware/security","firmware/totp","firmware/io","firmware/keyboard"] },
+  "colors": {
+    "primary": "#2563eb",
+    "light": "#eff6ff",
+    "dark": "#1e1b4b"
+  },
+  "navigation": {
+    "links": []
+  },
+  "sidebar": [
+    { "group": "Introduction", "pages": ["index", "getting-started"] },
+    { "group": "Hardware", "pages": ["hardware/overview", "hardware/eeprom", "hardware/touch-sensor"] },
+    { "group": "Firmware", "pages": ["firmware/architecture", "firmware/security", "firmware/totp", "firmware/io", "firmware/keyboard"] },
     { "group": "Web Manager", "pages": ["web-manager/overview"] },
-    { "group": "Development", "pages": ["development/build","development/contributing"] },
-    { "group": "Reference", "pages": ["reference/api-eeprom","reference/api-security","reference/api-display"] }
+    { "group": "Development", "pages": ["development/build", "development/contributing"] },
+    { "group": "Reference", "pages": ["reference/api-eeprom", "reference/api-security", "reference/api-display"] }
   ]
 }
