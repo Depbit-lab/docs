@@ -8,7 +8,7 @@ description: "Inside ZeroKeyUSB — industrial-grade components designed for off
 ZeroKeyUSB is a self-contained, hardware-based password manager.  
 It has been engineered with a single goal in mind: **to protect your credentials without ever connecting to the Internet**.
 
-Each unit is assembled, tested, and encapsulated in resin to ensure that no external tampering can occur — and that it remains waterproof, dust-proof, and maintenance-free for years.
+Each unit is assembled, tested, and encapsulated in **industrial-grade epoxy resin** to ensure that no external tampering can occur — and that it remains waterproof, dust-proof, and maintenance-free for years.
 
 ---
 
@@ -18,44 +18,47 @@ At its heart, ZeroKeyUSB integrates a microcontroller, a secure non-volatile mem
 
 | Component | Model | Purpose |
 |------------|--------|----------|
-| **Main MCU** | Microchip SAMD21 | Executes all encryption, menu logic, and USB keyboard emulation. |
-| **Secure EEPROM** | ST M24C64-WMN6TP | Stores encrypted credentials, TOTP secrets, and device configuration. |
-| **Display** | OLED 128×32 px (white) | Provides clear information on credentials and 2FA codes. |
-| **Touch Sensor** | TS06 (6-channel) | Replaces mechanical buttons with durable capacitive touch input. |
-| **USB Interface** | USB-C | Provides both power and data; no battery required. |
+| **Main MCU** | Microchip SAMD21 | Executes encryption, menu logic, and USB keyboard emulation. |
+| **Secure EEPROM** | ST M24C64-WMN6TP | Stores encrypted credentials, TOTP secrets, and configuration data. |
+| **Display** | OLED 128×32 px (white) | Shows credentials, menu items, and 2FA codes. |
+| **Touch Sensor** | TS06 (6-channel, 5 used) | Replaces mechanical buttons with durable capacitive input. |
+| **USB Interface** | USB-C | Provides both power and data — no battery or charging circuit required. |
 
-All communication between these components is handled via **I²C** and **USB HID protocols**, using short encrypted data frames to ensure stability and integrity.
+All internal communication uses **I²C** for memory access and **USB HID** for host interaction.  
+Data written to the EEPROM is encrypted before transmission, so even if the I²C bus were probed, stored information would remain unreadable.
 
 ---
 
 ## Why these components
 
 ### 🧠 SAMD21 microcontroller
-The ARM® Cortex-M0+ processor provides excellent balance between performance and power efficiency.  
-It is used by many certified devices and allows **secure AES-128 operations in firmware** while keeping the system entirely offline.
+The ARM® Cortex-M0+ processor balances performance, size, and power efficiency.  
+It allows secure **AES-128 (CBC)** encryption in firmware while keeping the device fully offline.  
+The USB interface implements standard **HID keyboard emulation** using a **US-QWERTY** layout for universal compatibility.
 
 ### 🔐 M24C64-W EEPROM
-Chosen for its proven reliability and extended write endurance (>1,000,000 cycles), this memory chip is where your credentials are stored.  
-Each credential is divided into **three separate 32-byte encrypted blocks** (site, user, password).  
-The encryption key never leaves the MCU, and every write is followed by a data verification step.
+Chosen for its high reliability and write endurance (>1,000,000 cycles), this memory chip stores all encrypted user data.  
+Each credential is divided into **three 32-byte encrypted blocks** — one for site, one for username, and one for password — totaling **96 bytes per entry**, aligned with the EEPROM memory map.  
+The encryption key never leaves the MCU.  
+Each write operation is confirmed at the I²C level to ensure successful completion.
 
 ### 🖐️ TS06 touch sensor
-Instead of buttons that wear out, ZeroKeyUSB uses a sealed, six-channel capacitive touch controller.  
-The golden points on the front allow intuitive navigation:
-- **Up / Down** to scroll or change characters  
-- **Left / Right** to navigate between fields  
-- **Center** to confirm selections
+ZeroKeyUSB replaces physical buttons with a **sealed, six-channel capacitive touch controller**, of which five channels are actively used.  
+The five golden touch points on the front panel provide intuitive navigation:
+- **Up / Down:** Scroll or change characters  
+- **Left / Right:** Move between fields  
+- **Center:** Confirm selections  
 
-Long presses trigger special functions (next credential, return to menu, etc.), ensuring the interface remains simple yet powerful.
+Long presses perform shortcuts (e.g., next credential or return to menu), keeping the interface simple yet powerful.
 
 ### 💡 OLED display
-The 128×32-pixel OLED provides high contrast and wide viewing angles even in daylight.  
-It shows site names, usernames, passwords, and dynamic TOTP codes.  
-Large characters and a smooth auto-scroll system ensure readability without distractions.
+The 128×32-pixel OLED offers high contrast and excellent visibility, even in daylight.  
+It displays site names, usernames, passwords, and real-time TOTP codes.  
+Long fields automatically **scroll** for improved readability.
 
 ### ⚡ USB-C connection
-ZeroKeyUSB draws less than 20 mA during operation — about the same as a wireless mouse.  
-Because it relies entirely on the host for power, there are **no batteries to charge or replace**, and it works with any device that accepts a USB keyboard (Windows, macOS, Linux, Android, and more).
+ZeroKeyUSB typically draws **under 20 mA** — similar to a wireless mouse.  
+Since it relies entirely on the host for power, there are **no batteries to charge or replace**, and it works on any device supporting USB keyboards (Windows, macOS, Linux, Android, etc.).
 
 ---
 
@@ -63,7 +66,7 @@ Because it relies entirely on the host for power, there are **no batteries to ch
 
 - **Encapsulated electronics** prevent corrosion, dust, and moisture ingress.  
 - **No wireless interfaces** (Bluetooth, Wi-Fi, NFC) — eliminating remote attack surfaces.  
-- **Static, offline firmware** — the device cannot be updated remotely.  
+- **Static, offline firmware** — updates can only be done locally via USB bootloader, never remotely.  
 - **Universal compatibility** — recognized as a standard USB keyboard, requiring no drivers or apps.
 
 ---
@@ -71,14 +74,15 @@ Because it relies entirely on the host for power, there are **no batteries to ch
 ## Transparency, not exposure
 
 ZeroKeyUSB is **open source by philosophy, not by necessity**.  
-The full firmware and schematics are publicly available on [GitHub → Depbit-lab/zerokeyusb](https://github.com/Depbit-lab/zerokeyusb),  
-allowing independent verification of its security model — without compromising your own privacy.
+The full firmware and hardware schematics are publicly available on  
+[GitHub → Depbit-lab/zerokeyusb](https://github.com/Depbit-lab/zerokeyusb),  
+allowing anyone to verify exactly what code runs on their device — without exposing private data.
 
-You never need to modify or program your device.  
+You never need to modify or program your unit manually.  
 It simply works, securely and offline, from the moment you plug it in.
 
 ---
 
 <Note>
-ZeroKeyUSB is a sealed product — opening or reprogramming the device will void warranty and destroy its waterproof encapsulation.
+ZeroKeyUSB is a sealed product — opening or reprogramming the device voids the warranty and destroys its waterproof encapsulation.
 </Note>
