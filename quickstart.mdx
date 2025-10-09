@@ -5,9 +5,10 @@ description: "Learn how to unlock, configure, and start using your ZeroKeyUSB sa
 
 ## Welcome to ZeroKeyUSB
 
-ZeroKeyUSB arrives **ready to use out of the box**.  
-All firmware, security modules, and memory structures are already pre-installed and tested at the factory.  
-When you plug it in for the first time, it will guide you through a simple one-time setup process.
+**ZeroKeyUSB** arrives ready to use — fully offline, preloaded with stable firmware and tested hardware.  
+If you assembled or flashed your own unit, follow the same setup wizard after installation.
+
+When powered for the first time, the device will guide you through a one-time initialization process.
 
 ---
 
@@ -21,18 +22,19 @@ When you plug it in for the first time, it will guide you through a simple one-t
 
   <Accordion icon="display" title="Automatic startup">
     On first power-up, ZeroKeyUSB automatically initializes:
-    - The **OLED screen** (128×32 pixels)
+    - The **OLED display** (128×32 pixels, monochrome)
     - The **touch controller TS06** (five golden touch sensors)
     - The **secure EEPROM** (M24C64-WMN6TP)
-    - A unique **AES-128 initialization vector (IV)** and a **device serial number**
+    - Generates a new **AES-128 initialization vector (IV)** if none is found in EEPROM
+    - Reads the hardware **serial number** from the SAMD21 unique ID registers
 
     You will see the message:
 
     ```
     First Startup
     ZeroKey USB
-    Touch the golden dots
-    Right to continue →
+    Touch any golden dot
+    → to continue
     ```
   </Accordion>
 </AccordionGroup>
@@ -51,14 +53,14 @@ When you plug it in for the first time, it will guide you through a simple one-t
     - **Center →** Confirm
 
     Choose a PIN between **4 and 16 digits**.  
-    This will become your **encryption key** — every stored credential is protected by it.
+    This PIN acts directly as the **AES-128 encryption key** — all stored credentials are protected by it.
   </Accordion>
 
   <Accordion icon="shield" title="Security behind your PIN">
     Your PIN is used to:
-    - Derive the **AES-128 key** that encrypts all credentials.
-    - Create a unique **signature** stored in EEPROM (verified at each unlock).
-    - Lock access after multiple failed attempts, with exponential wait times.
+    - Derive the **AES-128 key** that encrypts all credentials  
+    - Create a unique **signature** stored in EEPROM (verified on each unlock)  
+    - Reject incorrect PIN entries but allow unlimited retries
 
     <Tip>ZeroKeyUSB never stores or transmits your PIN in plain text.</Tip>
   </Accordion>
@@ -78,10 +80,13 @@ When you plug it in for the first time, it will guide you through a simple one-t
     🔒  password
     ```
 
-    Each credential is divided internally into **three encrypted EEPROM pages**:
+    Each credential is divided into **three encrypted EEPROM pages**:
     - Site name (32 bytes)
     - Username (32 bytes)
     - Password (32 bytes)
+
+    ZeroKeyUSB can store up to **64 credentials** in total.  
+    Long fields automatically **scroll** on the OLED display.
   </Accordion>
 
   <Accordion icon="fingerprint" title="Navigation controls">
@@ -94,11 +99,12 @@ When you plug it in for the first time, it will guide you through a simple one-t
 
   <Accordion icon="keyboard" title="Auto-type your credentials">
     When you select a site and press **Center**, ZeroKeyUSB acts as a USB keyboard and types:
-    1. Your username (expanding automatically if it ends in `@`)
-    2. A tab key
+    1. Your username (expanding automatically if it ends with `@`)  
+    2. A **Tab** key  
     3. Your password  
 
-    It supports multiple keyboard layouts (`US`, `ES`, `FR`, `DE`, etc.), stored in the EEPROM and changeable via the Settings menu.
+    The firmware uses a **US-QWERTY** keyboard layout by default.  
+    For non-US layouts, you may need to adjust special characters on the host system.
   </Accordion>
 </AccordionGroup>
 
@@ -109,12 +115,13 @@ When you plug it in for the first time, it will guide you through a simple one-t
 <AccordionGroup>
   <Accordion icon="clock" title="Offline TOTP generator">
     ZeroKeyUSB can generate **Time-based One-Time Passwords (TOTP)** completely offline.  
-    To add one, use the web manager or a compatible host application to send an `otpauth://` URI to the device (e.g. from an authenticator app).
+    You can import a **Base32-encoded TOTP secret** via the local web manager (see the TOTP documentation for details).
   </Accordion>
 
   <Accordion icon="timer" title="Display 2FA codes">
-    From the main screen, scroll down to **“2FA”** if available.  
-    If the device asks for time synchronization (`REQTIME`), send the host time once via the web manager — it will store the epoch in EEPROM for future calculations.
+    From the main screen, scroll down to **“2FA”** if a secret exists.  
+    If the device displays `REQTIME`, it is requesting the current epoch time.  
+    Send the host time once via the web manager — the value will be saved in EEPROM and reused until a new sync is performed.
   </Accordion>
 </AccordionGroup>
 
@@ -124,15 +131,17 @@ When you plug it in for the first time, it will guide you through a simple one-t
 
 <AccordionGroup>
   <Accordion icon="database" title="Backup your data">
-    From the **Menu → Backup → Export**, ZeroKeyUSB can send all encrypted credentials over the USB serial interface in CSV format.  
-    Use this option to save an offline backup before performing factory resets.
+    From the **Menu → Backup → Export**, ZeroKeyUSB can send all credentials over the USB serial interface in CSV format.  
+    Data is transmitted in **plain text**, so handle backups securely and keep them offline.
+    You can later re-import them through the web manager’s restore option.
   </Accordion>
 
   <Accordion icon="triangle-exclamation" title="Factory reset">
     To wipe the device completely:
-    - Enter **Menu → Danger Zone → Factory Reset**
-    - All credentials and the PIN signature will be erased
-    - The device will restart in initial setup mode
+    - Enter **Menu → ⚠️ Danger Zone → Factory Reset**
+    - All credentials, TOTP secrets, and the PIN signature will be erased
+    - The device will restart in initial setup mode  
+    <Tip>This action cannot be undone. Make sure you have a backup first.</Tip>
   </Accordion>
 </AccordionGroup>
 
@@ -143,15 +152,15 @@ When you plug it in for the first time, it will guide you through a simple one-t
 <CardGroup cols={2}>
 
 <Card title="Hardware Overview" icon="microchip" href="/hardware/overview">
-  Understand the main components: SAMD21 MCU, M24C64 EEPROM, and touch controller TS06.
+  Understand the main components: SAMD21 MCU, M24C64-W EEPROM, and TS06 touch controller.
 </Card>
 
 <Card title="Security Core" icon="shield" href="/firmware/security">
-  Explore how encryption, IV generation, and signature validation keep your credentials safe.
+  Explore how AES-128 encryption, IV generation, and signature verification keep your data safe.
 </Card>
 
 <Card title="Display & Menu System" icon="display" href="/firmware/architecture">
-  Learn how the UI, icons, and scroll animations are implemented in firmware.
+  Learn how the interface, icons, and scrolling animations are implemented in firmware.
 </Card>
 
 <Card title="TOTP Module" icon="clock" href="/firmware/totp">
@@ -161,6 +170,6 @@ When you plug it in for the first time, it will guide you through a simple one-t
 </CardGroup>
 
 <Note>
-  ZeroKeyUSB works on any system that supports standard USB keyboards.  
-  No software, extensions, or drivers are required.
+  ZeroKeyUSB works on any operating system that supports standard USB keyboards.  
+  No drivers, extensions, or software installations are required.
 </Note>
