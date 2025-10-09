@@ -5,31 +5,30 @@ description: "How the OLED UI is rendered, animated, and kept secure while you b
 
 ## 128×32 pixels with purpose
 
-ZeroKeyUSB uses a **white OLED panel (SSD1306 controller)** with a 128×32 resolution.
-The firmware keeps the interface intentionally minimal: large typography, clear icons, and smooth scroll areas that work even in low light.
+ZeroKeyUSB uses a **white OLED panel (SSD1306 controller, I²C 400 kHz)** with a 128×32 resolution.  
+The firmware keeps the interface intentionally minimal: large typography, clear icons, and smooth transitions that remain legible even in low light.
 
-```
 ┌───────────────────────┐
-│ MENU                  │
-│ > Backup              │
-│   Settings            │
-│   TOTP                │
-│   Danger Zone         │
-│   Info                │
+│ MENU │
+│ > Backup │
+│ Settings │
+│ TOTP │
+│ Danger Zone │
+│ Info │
 └───────────────────────┘
-```
 
-Every screen uses a 1-bit frame buffer stored in SRAM and transferred over I²C at 400 kHz.
+
+Every screen is built inside a **1-bit frame buffer** (~512 bytes) stored in SRAM and sent in full to the display on each refresh cycle.
 
 ---
 
 ## Rendering pipeline
 
-1. **Frame buffer build** – the application composes the entire screen in RAM using helper functions such as `draw_text()`, `draw_icon()`, and `draw_progress()`.
-2. **Diff detection** – only the pages that changed since the last frame are sent to the OLED, reducing I²C traffic.
-3. **VSync pacing** – a 60 Hz timer ensures updates feel immediate without flicker.
+1. **Frame buffer build** – the application composes the entire screen in RAM using helper functions such as `draw_text()`, `draw_icon()`, and `draw_progress()`.  
+2. **Full-frame transfer** – every refresh sends all 512 bytes to the OLED via I²C, ensuring consistent updates.  
+3. **Refresh pacing** – a cooperative loop updates the display roughly 30 times per second, avoiding flicker while keeping CPU usage minimal.
 
-This approach keeps the display responsive even while the device computes encryption or TOTP codes.
+This method keeps the UI smooth and responsive even while encryption or TOTP operations run in parallel.
 
 ---
 
@@ -38,38 +37,40 @@ This approach keeps the display responsive even while the device computes encryp
 | Asset            | Format  | Purpose                                      |
 | ---------------- | ------- | -------------------------------------------- |
 | **Main font**    | Custom 6×12 bitmap | Used for menus, lists, and info screens. |
-| **Mono font**    | 8×12 bitmap | Optimized for passwords and 2FA codes.       |
-| **Icons**        | 16×16 sprites | Backup, settings, clock, warning, info.     |
+| **Mono font**    | 8×12 bitmap | Optimized for passwords and 2FA codes.     |
+| **Icons**        | 16×16 sprites | Backup, settings, clock, warning, info.   |
 
-Fonts are embedded directly in flash memory. When a password is displayed or typed, the characters are rendered using the mono font to avoid ambiguity between similar glyphs (e.g., `O` vs `0`).
+All fonts and icons are stored in **PROGMEM flash memory** within the firmware.  
+When displaying passwords or TOTP codes, the mono font avoids confusion between similar characters (`O` vs `0`, `I` vs `1`).
 
 ---
 
 ## Scrolling & focus
 
-- **Auto-scroll** – long site names scroll horizontally with easing to remain readable.
-- **Focus highlight** – the currently selected option is inverted, while others stay dimmed.
-- **Long-press feedback** – a filling progress bar appears during destructive confirmations (factory reset, delete all).
+- **Auto-scroll** – long site names (over ≈ 8 characters) scroll horizontally at a steady pace.  
+- **Focus highlight** – the currently selected option is inverted, while others remain dimmed.  
+- **Long-press feedback** – a filling progress bar confirms destructive actions (factory reset, delete all).
 
-Animations are performed through lightweight tweening functions that never block the main loop.
+Animations use **simple incremental updates** inside the main loop — no floating-point easing or blocking delays.
 
 ---
 
 ## Secure display practices
 
-- Sensitive fields (passwords, TOTP secrets) are **masked by default** and only revealed for a few seconds when the user confirms the action.
-- After typing credentials, the firmware clears the frame buffer to remove any residual characters from RAM.
-- If the device remains idle for **60 seconds**, it automatically returns to the lock screen and wipes the buffer again.
+- Sensitive fields (passwords, TOTP codes) are **masked by default** and only revealed briefly when confirmed by touch.  
+- After typing credentials, the firmware clears the frame buffer to remove residual data from RAM.  
+- While connected to USB, the display remains active; it does **not automatically lock or power off** due to inactivity.  
+- The OLED never displays decrypted secrets for longer than a few seconds, even if the host is unresponsive.
 
 ---
 
 ## Diagnostics view
 
-A hidden diagnostic screen (accessible only during factory testing) shows I²C bus status, touch raw values, and firmware version.
-It is **disabled** in production builds to avoid leaking debugging information.
+A hidden diagnostic mode (used only in factory testing) shows I²C status, raw touch data, and firmware version.  
+It is **compiled out of production builds** through a conditional flag to prevent debug information leaks.
 
 ---
 
 <Note>
-The OLED is encapsulated behind the resin window, making it resilient to scratches and moisture while keeping contrast pristine.
+The OLED sits behind a sealed resin window, providing excellent contrast and resistance to scratches, dust, and moisture.
 </Note>
