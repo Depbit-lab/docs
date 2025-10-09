@@ -1,5 +1,156 @@
 ---
-title: 'New file'
-description: 'Description of your new file.'
+title: "Menu System"
+description: "Explore the ZeroKeyUSB menu and learn how to use its features safely and efficiently."
 ---
 
+## Simple control, powerful features
+
+ZeroKeyUSB has no buttons, no apps, and no hidden menus — only **five golden touch points** that control everything you need.
+
+From navigating credentials to backing up your data, every function is available through a clean on-screen menu designed for clarity and safety.
+
+---
+
+## Navigating the interface
+
+The capacitive touch controls are intuitive and responsive:
+
+| Gesture | Action |
+|----------|---------|
+| **Right →** | Move forward / Confirm / Open submenu |
+| **Left ←** | Go back / Exit current screen |
+| **Up ↑ / Down ↓** | Scroll through options or change characters |
+| **Center •** | Select / Confirm |
+| **Long press** | Triggers special functions (e.g., factory reset confirmation) |
+
+A small label at the top of the display indicates your current context (for example: `MENU`, `SITE`, `TOTP`, or `SETUP`).
+
+---
+
+## Main menu overview
+
+When you enter the main menu, you’ll see five sections:
+
+1. **Backup**  
+2. **Settings**  
+3. **TOTP**  
+4. **Danger Zone**  
+5. **Info**
+
+Each section is explained below.
+
+---
+
+### 🔁 Backup
+
+ZeroKeyUSB allows you to **export and import** your encrypted database through the USB serial interface.
+
+#### **Import credentials**
+Used when restoring from a backup created on the same device.  
+After selecting **Import**, ZeroKeyUSB waits for data sent from the web manager or another trusted source.  
+The data must match the encryption key derived from your current PIN.
+
+#### **Export credentials**
+This generates a read-only CSV-like output over USB serial, listing all your encrypted credentials.  
+Each entry includes site, username, password, and optional TOTP secret (if present).  
+Export is protected by the PIN — no decryption is possible without it.
+
+> 💡 **Tip:** Always back up before performing a factory reset.
+
+---
+
+### ⚙️ Settings
+
+Personalize how your ZeroKeyUSB behaves — without ever connecting it to the Internet.
+
+#### **Rotate Screen**
+Flips the display orientation (useful for left- or right-handed operation).
+
+#### **Keyboard Layout**
+Select the output language layout for USB keyboard emulation:  
+`US`, `ES`, `FR`, `DE`, `IT`, `PT`, `SV`, and others.  
+This ensures passwords and special characters are typed correctly on any system.
+
+#### **About**
+Displays software version, serial number, and a link to the open-source repository:  
+ZeroKey USB
+SW 1.0.0
+SN XXXXXXXX
+github.com/Depbit-lab
+
+yaml
+Copiar código
+
+---
+
+### ⏱️ TOTP
+
+If a credential includes a **two-factor authentication (2FA)** secret, you can generate a time-based code directly from the device.
+
+When you enter **TOTP**:
+- If the current time has not been set, the screen shows  
+  `Time not set → Request host time`.  
+- Once synchronized, a six-digit code appears with a countdown timer (30 seconds).  
+- The code refreshes automatically at the end of each interval.
+
+ZeroKeyUSB supports:
+- **SHA-1**, **SHA-256**, and **SHA-512** algorithms.  
+- Secure storage of the TOTP secret, encrypted in EEPROM alongside your credentials.
+
+> 🔒 The TOTP system works entirely offline. No app or cloud sync is ever required.
+
+---
+
+### ⚠️ Danger Zone
+
+Actions inside this section are **irreversible** and protected by on-screen confirmation.
+
+#### **Reset PIN**
+Resets the master PIN and requires full re-authentication.  
+All stored credentials remain intact, but you must verify the new PIN before continuing.
+
+#### **Delete Credentials**
+Erases the encrypted database of sites, usernames, passwords, and TOTP secrets.  
+The device will display a visual countdown before performing the deletion.
+
+#### **Factory Reset**
+Completely restores ZeroKeyUSB to its original state:  
+- Wipes all memory, including PIN signature and IV.  
+- Regenerates a new encryption seed at startup.  
+- Returns the device to first-time setup mode.
+
+> 🧠 During deletion, the screen displays:  
+> “Critical process — unplug to cancel.”  
+> This prevents accidental erasure.
+
+---
+
+### ℹ️ Info
+
+A quick way to view essential device information:
+
+- **Software version** — e.g. `SW 1.0.0`  
+- **Serial number** — unique per device, hardware-bound  
+- **Open-source link** — directs to [github.com/Depbit-lab/zerokeyusb](https://github.com/Depbit-lab/zerokeyusb)
+
+Use this section to verify authenticity or to confirm your device runs the latest stable firmware version preloaded by the manufacturer.
+
+---
+
+## Design philosophy
+
+The menu system is intentionally minimalist:
+- No nested complexity — every option is two taps away.  
+- No animations or distractions — focused on clarity.  
+- All operations are local and reversible (except for secure erasure).  
+- The interface remains identical across all hardware revisions.
+
+ZeroKeyUSB is built for **confidence, not configuration**.  
+Once you learn the gestures, you can operate it entirely from muscle memory — safely, silently, and offline.
+
+---
+
+<Note>
+You don’t need to install software or drivers.  
+ZeroKeyUSB is recognized as a standard USB keyboard on any operating system.
+</Note>
