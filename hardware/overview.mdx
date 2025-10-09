@@ -1,5 +1,84 @@
 ---
-title: 'New file'
-description: 'Description of your new file.'
+title: "Hardware Overview"
+description: "Inside ZeroKeyUSB — industrial-grade components designed for offline security and long-term reliability."
 ---
 
+## Built for trust
+
+ZeroKeyUSB is a self-contained, hardware-based password manager.  
+It has been engineered with a single goal in mind: **to protect your credentials without ever connecting to the Internet**.
+
+Each unit is assembled, tested, and encapsulated in resin to ensure that no external tampering can occur — and that it remains waterproof, dust-proof, and maintenance-free for years.
+
+---
+
+## Core architecture
+
+At its heart, ZeroKeyUSB integrates a microcontroller, a secure non-volatile memory, and a minimal user interface — all optimized for **privacy, simplicity, and durability**.
+
+| Component | Model | Purpose |
+|------------|--------|----------|
+| **Main MCU** | Microchip SAMD21 | Executes all encryption, menu logic, and USB keyboard emulation. |
+| **Secure EEPROM** | ST M24C64-WMN6TP | Stores encrypted credentials, TOTP secrets, and device configuration. |
+| **Display** | OLED 128×32 px (white) | Provides clear information on credentials and 2FA codes. |
+| **Touch Sensor** | TS06 (6-channel) | Replaces mechanical buttons with durable capacitive touch input. |
+| **USB Interface** | USB-C | Provides both power and data; no battery required. |
+
+All communication between these components is handled via **I²C** and **USB HID protocols**, using short encrypted data frames to ensure stability and integrity.
+
+---
+
+## Why these components
+
+### 🧠 SAMD21 microcontroller
+The ARM® Cortex-M0+ processor provides excellent balance between performance and power efficiency.  
+It is used by many certified devices and allows **secure AES-128 operations in firmware** while keeping the system entirely offline.
+
+### 🔐 M24C64-W EEPROM
+Chosen for its proven reliability and extended write endurance (>1,000,000 cycles), this memory chip is where your credentials are stored.  
+Each credential is divided into **three separate 32-byte encrypted blocks** (site, user, password).  
+The encryption key never leaves the MCU, and every write is followed by a data verification step.
+
+### 🖐️ TS06 touch sensor
+Instead of buttons that wear out, ZeroKeyUSB uses a sealed, six-channel capacitive touch controller.  
+The golden points on the front allow intuitive navigation:
+- **Up / Down** to scroll or change characters  
+- **Left / Right** to navigate between fields  
+- **Center** to confirm selections
+
+Long presses trigger special functions (next credential, return to menu, etc.), ensuring the interface remains simple yet powerful.
+
+### 💡 OLED display
+The 128×32-pixel OLED provides high contrast and wide viewing angles even in daylight.  
+It shows site names, usernames, passwords, and dynamic TOTP codes.  
+Large characters and a smooth auto-scroll system ensure readability without distractions.
+
+### ⚡ USB-C connection
+ZeroKeyUSB draws less than 20 mA during operation — about the same as a wireless mouse.  
+Because it relies entirely on the host for power, there are **no batteries to charge or replace**, and it works with any device that accepts a USB keyboard (Windows, macOS, Linux, Android, and more).
+
+---
+
+## Designed for resilience
+
+- **Encapsulated electronics** prevent corrosion, dust, and moisture ingress.  
+- **No wireless interfaces** (Bluetooth, Wi-Fi, NFC) — eliminating remote attack surfaces.  
+- **Static, offline firmware** — the device cannot be updated remotely.  
+- **Universal compatibility** — recognized as a standard USB keyboard, requiring no drivers or apps.
+
+---
+
+## Transparency, not exposure
+
+ZeroKeyUSB is **open source by philosophy, not by necessity**.  
+The full firmware and schematics are publicly available on [GitHub → Depbit-lab/zerokeyusb](https://github.com/Depbit-lab/zerokeyusb),  
+allowing independent verification of its security model — without compromising your own privacy.
+
+You never need to modify or program your device.  
+It simply works, securely and offline, from the moment you plug it in.
+
+---
+
+<Note>
+ZeroKeyUSB is a sealed product — opening or reprogramming the device will void warranty and destroy its waterproof encapsulation.
+</Note>
