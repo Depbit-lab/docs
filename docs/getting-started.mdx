@@ -1,0 +1,35 @@
+---
+title: Getting Started
+---
+
+# Getting Started
+
+Follow these steps to launch the documentation locally and deploy updates.
+
+## 1. Install dependencies
+
+Mintlify requires Node.js (version 16 or newer). Once Node is installed, add the Mintlify CLI globally:
+
+```bash
+npm install -g mintlify
+```
+
+## 2. Run the development server
+
+From the repository root, run:
+
+```bash
+mintlify dev
+```
+
+The CLI serves your documentation at `http://localhost:3000` and automatically reloads as you edit files.
+
+## 3. Build for production
+
+When you are ready to publish, create a static build:
+
+```bash
+mintlify build
+```
+
+Deploy the contents of the generated `build` directory to your hosting provider.

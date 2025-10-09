@@ -1,0 +1,24 @@
+{
+  "name": "Mintlify Docs",
+  "logo": "/logo.svg",
+  "navigation": [
+    {
+      "group": "Overview",
+      "pages": [
+        "index",
+        "getting-started"
+      ]
+    },
+    {
+      "group": "Reference",
+      "pages": [
+        "api-reference/overview"
+      ]
+    }
+  ],
+  "topbarCta": {
+    "type": "link",
+    "text": "Mintlify",
+    "url": "https://mintlify.com"
+  }
+}
