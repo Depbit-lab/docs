@@ -1,80 +1,166 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Getting Started"
+description: "Learn how to unlock, configure, and start using your ZeroKeyUSB safely."
 ---
 
-## Get started in three steps
+## Welcome to ZeroKeyUSB
 
-Get your documentation site running locally and make your first customization.
+ZeroKeyUSB arrives **ready to use out of the box**.  
+All firmware, security modules, and memory structures are already pre-installed and tested at the factory.  
+When you plug it in for the first time, it will guide you through a simple one-time setup process.
 
-### Step 1: Set up your local environment
+---
+
+### Step 1: Power on and initialization
 
 <AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
+  <Accordion icon="usb-drive" title="Connect ZeroKeyUSB">
+    Plug your device into any **USB-C port** on your computer, tablet, or phone.  
+    ZeroKeyUSB is powered entirely by the USB connection — it has **no internal battery**.
   </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
+
+  <Accordion icon="display" title="Automatic startup">
+    On first power-up, ZeroKeyUSB automatically initializes:
+    - The **OLED screen** (128×32 pixels)
+    - The **touch controller TS06** (five golden touch sensors)
+    - The **secure EEPROM** (M24C64-WMN6TP)
+    - A unique **AES-128 initialization vector (IV)** and a **device serial number**
+
+    You will see the message:
+
+    ```
+    First Startup
+    ZeroKey USB
+    Touch the golden dots
+    Right to continue →
+    ```
   </Accordion>
 </AccordionGroup>
 
-### Step 2: Deploy your changes
+---
+
+### Step 2: Create your Master PIN
 
 <AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+  <Accordion icon="lock" title="Enter your new PIN">
+    Use the **five golden touch dots** to navigate the setup screens:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    - **Right →** Continue  
+    - **Left →** Go back  
+    - **Up / Down →** Change digit  
+    - **Center →** Confirm
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
+    Choose a PIN between **4 and 16 digits**.  
+    This will become your **encryption key** — every stored credential is protected by it.
+  </Accordion>
+
+  <Accordion icon="shield" title="Security behind your PIN">
+    Your PIN is used to:
+    - Derive the **AES-128 key** that encrypts all credentials.
+    - Create a unique **signature** stored in EEPROM (verified at each unlock).
+    - Lock access after multiple failed attempts, with exponential wait times.
+
+    <Tip>ZeroKeyUSB never stores or transmits your PIN in plain text.</Tip>
   </Accordion>
 </AccordionGroup>
 
-### Step 3: Go live
+---
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+### Step 3: Store your credentials
+
+<AccordionGroup>
+  <Accordion icon="folder-key" title="Add a new credential">
+    After unlocking, you’ll see the main screen with three fields:
+
+    ```
+    🌐  site.com
+    👤  username
+    🔒  password
+    ```
+
+    Each credential is divided internally into **three encrypted EEPROM pages**:
+    - Site name (32 bytes)
+    - Username (32 bytes)
+    - Password (32 bytes)
+  </Accordion>
+
+  <Accordion icon="fingerprint" title="Navigation controls">
+    - **Up / Down:** Change character  
+    - **Left / Right:** Move cursor  
+    - **Center:** Confirm or save  
+    - **Right (long press):** Move to next credential slot  
+    - **Left (long press):** Return to menu
+  </Accordion>
+
+  <Accordion icon="keyboard" title="Auto-type your credentials">
+    When you select a site and press **Center**, ZeroKeyUSB acts as a USB keyboard and types:
+    1. Your username (expanding automatically if it ends in `@`)
+    2. A tab key
+    3. Your password  
+
+    It supports multiple keyboard layouts (`US`, `ES`, `FR`, `DE`, etc.), stored in the EEPROM and changeable via the Settings menu.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### Step 4: (Optional) Add a 2FA secret
+
+<AccordionGroup>
+  <Accordion icon="clock" title="Offline TOTP generator">
+    ZeroKeyUSB can generate **Time-based One-Time Passwords (TOTP)** completely offline.  
+    To add one, use the web manager or a compatible host application to send an `otpauth://` URI to the device (e.g. from an authenticator app).
+  </Accordion>
+
+  <Accordion icon="timer" title="Display 2FA codes">
+    From the main screen, scroll down to **“2FA”** if available.  
+    If the device asks for time synchronization (`REQTIME`), send the host time once via the web manager — it will store the epoch in EEPROM for future calculations.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### Step 5: Backup and maintenance
+
+<AccordionGroup>
+  <Accordion icon="database" title="Backup your data">
+    From the **Menu → Backup → Export**, ZeroKeyUSB can send all encrypted credentials over the USB serial interface in CSV format.  
+    Use this option to save an offline backup before performing factory resets.
+  </Accordion>
+
+  <Accordion icon="triangle-exclamation" title="Factory reset">
+    To wipe the device completely:
+    - Enter **Menu → Danger Zone → Factory Reset**
+    - All credentials and the PIN signature will be erased
+    - The device will restart in initial setup mode
+  </Accordion>
+</AccordionGroup>
+
+---
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
+<Card title="Hardware Overview" icon="microchip" href="/hardware/overview">
+  Understand the main components: SAMD21 MCU, M24C64 EEPROM, and touch controller TS06.
 </Card>
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
+<Card title="Security Core" icon="shield" href="/firmware/security">
+  Explore how encryption, IV generation, and signature validation keep your credentials safe.
 </Card>
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
+<Card title="Display & Menu System" icon="display" href="/firmware/architecture">
+  Learn how the UI, icons, and scroll animations are implemented in firmware.
 </Card>
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
+<Card title="TOTP Module" icon="clock" href="/firmware/totp">
+  See how offline time-based codes are calculated and stored securely.
 </Card>
 
 </CardGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  ZeroKeyUSB works on any system that supports standard USB keyboards.  
+  No software, extensions, or drivers are required.
 </Note>
