@@ -1,5 +1,171 @@
 ---
-title: 'New file'
-description: 'Description of your new file.'
+title: "FAQ"
+description: "Answers to the most common questions about ZeroKeyUSB — security, compatibility, and daily use."
 ---
 
+## General
+
+### 🧩 What is ZeroKeyUSB?
+ZeroKeyUSB is a **hardware password manager** that stores your credentials completely **offline**.  
+It behaves like a regular USB keyboard: when you select a saved account, it simply **types your login details** automatically — no software or internet connection required.
+
+---
+
+### 🔌 Does it need an app or subscription?
+No.  
+ZeroKeyUSB does not depend on any software, extensions, or subscriptions.  
+It works instantly when plugged into any computer, phone, or tablet that accepts a USB keyboard.
+
+---
+
+### 💻 What devices is it compatible with?
+ZeroKeyUSB works universally with:
+- Windows  
+- macOS  
+- Linux  
+- Android (via USB-C or adapter)  
+- iPadOS (USB-C models)
+
+Because it emulates a standard keyboard, it works wherever you can type.
+
+---
+
+### 🔋 Does it have a battery?
+No.  
+ZeroKeyUSB draws minimal power (around 20 mA) directly from the USB port.  
+This makes it **maintenance-free** and ensures your credentials are always available — even years later.
+
+---
+
+## Security
+
+### 🔐 How are my passwords protected?
+Every credential is **encrypted with AES-128 in CBC mode**, using a key derived from your Master PIN.  
+The encryption key never leaves the device, and all data in memory is unreadable without it.
+
+Even if someone physically extracts the memory chip, the data inside looks like random noise.
+
+---
+
+### 🧠 What happens if I forget my PIN?
+For security reasons, there is **no PIN recovery**.  
+The only option is a **Factory Reset**, which wipes all encrypted data and lets you create a new PIN.  
+This ensures that no one — not even the manufacturer — can access your information.
+
+> 💡 Tip: Choose a memorable PIN and avoid storing it digitally.
+
+---
+
+### 🕐 Does it connect to the Internet?
+Never.  
+ZeroKeyUSB is a **fully offline system**.  
+It has no Wi-Fi, Bluetooth, or NFC modules, and it never exchanges data with external servers.  
+You are the only one who can access the stored information.
+
+---
+
+### 💾 Can someone clone my device?
+No.  
+Each ZeroKeyUSB generates a **unique cryptographic identity** during its first initialization, including a random IV (Initialization Vector) and a hardware-bound signature.  
+Even if another device uses the same PIN, its encryption pattern will be completely different.
+
+---
+
+### 🚫 What happens after too many wrong PIN attempts?
+Each failed attempt triggers a progressively longer waiting period before you can try again:
+
+| Failed attempts | Waiting time |
+|------------------|--------------|
+| 1 | 5 seconds |
+| 2 | 10 seconds |
+| 3 | 20 seconds |
+| 4 | 40 seconds |
+| … | Up to 43 minutes |
+
+This makes brute-force attacks impractical, even with physical access.
+
+---
+
+### 🧰 Can the firmware be updated?
+No.  
+The firmware is **pre-installed and sealed** for security and stability.  
+It cannot be modified remotely, preventing malware or unauthorized updates.
+
+However, the source code is open for public audit — you can verify what runs inside your device on [GitHub](https://github.com/Depbit-lab/zerokeyusb).
+
+---
+
+### 🔍 Is it really open source?
+Yes — but open for **transparency**, not for modification.  
+Publishing the code lets anyone verify that:
+- There are no backdoors or data collection.  
+- Encryption is standard and verifiable.  
+- All functions operate exactly as described.
+
+Your device runs a **sealed, signed version** of this same code.
+
+---
+
+## Usage
+
+### 🧑‍💻 How many credentials can it store?
+Up to **64 encrypted credentials**, each containing:
+- Website or service name  
+- Username or email  
+- Password  
+- (Optional) 2FA secret for generating TOTP codes
+
+---
+
+### 🧾 Can I back up my data?
+Yes.  
+Use **Menu → Backup → Export** to send an encrypted list of credentials to your computer via USB serial.  
+You can later **Import** the same backup if needed, as long as you use the same Master PIN.
+
+> 🔒 Backup files are still encrypted — they are useless without your PIN.
+
+---
+
+### ⏱️ How does the 2FA (TOTP) feature work?
+ZeroKeyUSB can generate **time-based one-time passwords (TOTP)** offline, just like Google Authenticator.  
+Once you add a TOTP secret to a credential, the device can display your current 6-digit code with a countdown timer — without needing your phone or Internet.
+
+---
+
+### 🌍 The keyboard types wrong symbols — what can I do?
+Go to **Menu → Settings → Keyboard Layout** and choose your language:  
+`US`, `ES`, `FR`, `DE`, etc.  
+This ensures that special characters (like `@` or `!`) match your system keyboard layout.
+
+---
+
+### 🧼 Is it waterproof?
+Yes.  
+Each ZeroKeyUSB unit is **fully resin-encapsulated**, making it resistant to water, dust, and everyday wear.  
+It is not designed for submersion, but it will survive accidental spills or rain exposure.
+
+---
+
+### 🧱 What if the screen breaks?
+Your data remains safe — it’s still encrypted inside the EEPROM.  
+However, you’ll need to contact support for a replacement, as the device cannot be disassembled or repaired without breaking the resin seal.
+
+---
+
+### 🛡️ How long will it last?
+ZeroKeyUSB has no moving parts or batteries.  
+All components are rated for **tens of thousands of hours of operation**.  
+With normal use, it should last **well over a decade**.
+
+---
+
+### 💬 How can I contact support?
+For any questions, reach out directly at  
+📧 **support@zerokeyusb.com**  
+or visit **[zerokeyusb.com/support](https://zerokeyusb.com/support)**
+
+---
+
+<Note>
+ZeroKeyUSB is designed to give you peace of mind — you own your passwords, and your data never leaves your hands.
+</Note>
