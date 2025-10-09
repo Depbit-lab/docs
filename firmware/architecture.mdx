@@ -8,15 +8,12 @@ description: "Understand how the ZeroKeyUSB firmware is organized, from low-leve
 ZeroKeyUSB firmware is written in C++ for the **Microchip SAMD21** microcontroller.  
 It follows a layered architecture that keeps hardware drivers, security primitives, and the user interface cleanly separated.
 
-┌───────────────────────────────┐
-│ Application logic │ ← credential manager, menu flow, host commands
-├───────────────────────────────┤
-│ Services & security layer │ ← encryption, TOTP engine, PIN gatekeeper
-├───────────────────────────────┤
-│ Drivers & hardware helpers │ ← OLED, touch controller, I²C EEPROM, USB HID
-├───────────────────────────────┤
-│ SAMD21 HAL / CMSIS │
-└───────────────────────────────┘
+| Layer                     | Responsibilities                                                |
+| ------------------------- | --------------------------------------------------------------- |
+| **Application logic**     | Credential manager, menu flow, host commands.                  |
+| **Services & security**   | Encryption routines, TOTP engine, Master PIN gatekeeper.       |
+| **Drivers & helpers**     | OLED display, touch controller, I²C EEPROM, USB HID interface. |
+| **SAMD21 HAL / CMSIS**    | Vendor hardware layer that exposes the MCU peripherals.        |
 
 
 Each module can evolve independently while keeping critical security routines auditable and easy to review.

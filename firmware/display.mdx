@@ -8,15 +8,13 @@ description: "How the OLED UI is rendered, animated, and kept secure while you b
 ZeroKeyUSB uses a **white OLED panel (SSD1306 controller, I²C 400 kHz)** with a 128×32 resolution.  
 The firmware keeps the interface intentionally minimal: large typography, clear icons, and smooth transitions that remain legible even in low light.
 
-┌───────────────────────┐
-│ MENU │
-│ > Backup │
-│ Settings │
-│ TOTP │
-│ Danger Zone │
-│ Info │
-└───────────────────────┘
-
+| Menu item      | Purpose                                                    |
+| -------------- | ----------------------------------------------------------- |
+| **Backup**     | Start the guided export of encrypted credentials.          |
+| **Settings**   | Configure device preferences such as brightness and PIN.   |
+| **TOTP**       | View time-based codes with large, legible typography.      |
+| **Danger Zone**| Confirm destructive actions like factory reset or wipe.    |
+| **Info**       | Show firmware version, serial data, and support details.   |
 
 Every screen is built inside a **1-bit frame buffer** (~512 bytes) stored in SRAM and sent in full to the display on each refresh cycle.
 
