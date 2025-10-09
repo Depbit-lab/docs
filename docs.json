@@ -1,61 +1,68 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "ZeroKeyUSB Documentation",
+  "name": "Mint Starter Kit",
   "colors": {
-    "primary": "#1D4ED8",
-    "light": "#3B82F6",
-    "dark": "#1E3A8A"
+    "primary": "#16A34A",
+    "light": "#07C983",
+    "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guías",
+        "tab": "Guides",
         "groups": [
           {
-            "group": "Comenzar",
+            "group": "Getting started",
             "pages": [
               "index",
               "quickstart",
-              "hardware/instalacion",
-              "hardware/especificaciones"
+              "development"
             ]
           },
           {
-            "group": "Configuración",
+            "group": "Customization",
             "pages": [
-              "software/configuracion",
-              "software/firmware"
+              "essentials/settings",
+              "essentials/navigation"
             ]
           },
           {
-            "group": "Operación",
+            "group": "Writing content",
             "pages": [
-              "operacion/modos",
-              "operacion/seguridad",
-              "mantenimiento/diagnostico",
-              "mantenimiento/solucion-problemas"
+              "essentials/markdown",
+              "essentials/code",
+              "essentials/images",
+              "essentials/reusable-snippets"
+            ]
+          },
+          {
+            "group": "AI tools",
+            "pages": [
+              "ai-tools/cursor",
+              "ai-tools/claude-code",
+              "ai-tools/windsurf"
             ]
           }
         ]
       },
       {
-        "tab": "API",
+        "tab": "API reference",
         "groups": [
           {
-            "group": "Referencia CLI",
+            "group": "API documentation",
             "pages": [
-              "api-reference/introduccion"
+              "api-reference/introduction"
             ]
           },
           {
-            "group": "Comandos",
+            "group": "Endpoint examples",
             "pages": [
-              "api-reference/comandos/obtener-estado",
-              "api-reference/comandos/configurar-tecla",
-              "api-reference/comandos/actualizar-firmware",
-              "api-reference/comandos/reiniciar-dispositivo"
+              "api-reference/endpoint/get",
+              "api-reference/endpoint/create",
+              "api-reference/endpoint/delete",
+              "api-reference/endpoint/webhook"
             ]
           }
         ]
@@ -64,12 +71,14 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Portal de clientes",
-          "href": "https://zerokey.io/portal"
+          "anchor": "Documentation",
+          "href": "https://mintlify.com/docs",
+          "icon": "book-open-cover"
         },
         {
-          "anchor": "Centro de soporte",
-          "href": "mailto:soporte@zerokey.io"
+          "anchor": "Blog",
+          "href": "https://mintlify.com/blog",
+          "icon": "newspaper"
         }
       ]
     }
@@ -81,33 +90,33 @@
   "navbar": {
     "links": [
       {
-        "label": "Guía de despliegue",
-        "page": "quickstart"
+        "label": "Support",
+        "href": "mailto:hi@mintlify.com"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Solicitar demo",
-      "href": "https://zerokey.io/demo"
+      "label": "Dashboard",
+      "href": "https://dashboard.mintlify.com"
     }
   },
   "contextual": {
     "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
+     "copy",
+     "view",
+     "chatgpt",
+     "claude",
+     "perplexity",
+     "mcp",
+     "cursor",
+     "vscode"
+   ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/zerokey",
-      "github": "https://github.com/zerokey",
-      "linkedin": "https://linkedin.com/company/zerokey"
+      "x": "https://x.com/mintlify",
+      "github": "https://github.com/mintlify",
+      "linkedin": "https://linkedin.com/company/mintlify"
     }
   }
 }
