@@ -1,5 +1,140 @@
 ---
-title: 'New file'
-description: 'Description of your new file.'
+title: "TOTP — Two-Factor Authentication"
+description: "Generate one-time codes securely and offline, right from your ZeroKeyUSB."
 ---
 
+## What is TOTP?
+
+TOTP stands for **Time-based One-Time Password** — the same system used by apps like Google Authenticator or Authy.\
+It generates a unique 6-digit code that changes every 30 seconds, proving that you have both:
+
+1. Your password (something you know)
+2. Your ZeroKeyUSB (something you own)
+
+Unlike phone apps, **ZeroKeyUSB performs this process completely offline**.\
+The time reference and secret key are stored inside the device, not in the cloud.
+
+---
+
+## How it works inside ZeroKeyUSB
+
+Every TOTP code is computed locally by combining:
+
+- A **secret key** (unique per account, stored encrypted in the EEPROM)
+- The current **time** (stored as a Unix epoch value)
+- A cryptographic **hash algorithm** (SHA-1, SHA-256, or SHA-512)
+
+This produces a 6-digit code that is valid for 30 seconds.
+
+TOTP = HMAC-SHA( secret , current_time / 30s )
+
+Because the calculation is deterministic and offline, you get the same code as any authenticator app would — but generated entirely within your ZeroKeyUSB.
+
+---
+
+## Adding a 2FA secret
+
+When you add a new account to ZeroKeyUSB, you can optionally include a **TOTP secret** (a short string provided by the service you’re securing).\
+This secret is automatically encrypted and saved in the secure memory.
+
+To import it:
+
+1. Use the local web manager or compatible host application.
+2. Send the `otpauth://` URI provided by the website or app (for example:\
+   `otpauth://totp/MySite:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=MySite`).
+3. ZeroKeyUSB parses, encrypts, and stores the secret internally.
+
+The secret is **never displayed**, **never transmitted**, and **never stored in plain text**.
+
+---
+
+## Viewing your 2FA code
+
+When a credential contains a TOTP secret, an extra line appears below the password field:
+
+2FA → Touch to view
+
+sql Copiar código
+
+Tapping the center point opens the TOTP view, where you’ll see:
+
+TOTP code: 123456 Expires in: 25 s
+
+The countdown indicator refreshes every second.\
+After 30 seconds, a new code is generated automatically.
+
+> 🧠 You can use this code anywhere you’d use Google Authenticator — it’s fully standard and compatible.
+
+---
+
+## Time synchronization
+
+Since ZeroKeyUSB works offline, it doesn’t have an internal clock.\
+Instead, it synchronizes **once** with your computer or phone through a simple USB command.
+
+When the device needs to generate a code but time hasn’t been set, it shows:
+
+Time not set Request host time
+
+At that moment, the host sends the current **Unix epoch time**.\
+This is stored in encrypted form and used as a base for future calculations.
+
+> ⏳ You only need to set the time after a factory reset or if it drifts by several minutes.
+
+---
+
+## Supported algorithms
+
+ZeroKeyUSB supports the three main HMAC algorithms used by modern 2FA systems:
+
+| Algorithm   | Security level   | Typical use                             |
+| ----------- | ---------------- | --------------------------------------- |
+| **SHA-1**   | Standard         | Most services (Google, Microsoft, etc.) |
+| **SHA-256** | Stronger hash    | Advanced security setups                |
+| **SHA-512** | Maximum strength | High-security or enterprise accounts    |
+
+The device automatically detects which algorithm is needed based on the `otpauth://` link you provide.
+
+---
+
+## How TOTP is protected
+
+| Layer                 | Description                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| **Encryption**        | Each secret is encrypted with AES-128 CBC using your Master PIN.                      |
+| **Segmentation**      | TOTP data is stored in a separate EEPROM page, isolated from site/user/password data. |
+| **Offline operation** | No Wi-Fi, Bluetooth, or sync — codes exist only inside your device.                   |
+| **Verification**      | The firmware verifies data integrity before every read.                               |
+| **Tamper resistance** | Secrets cannot be extracted without your PIN and IV (Initialization Vector).          |
+
+Even with physical access to the memory chip, it’s mathematically impossible to reconstruct your codes without your personal key.
+
+---
+
+## Advantages over phone authenticators
+
+| Feature          | Phone app         | ZeroKeyUSB                 |
+| ---------------- | ----------------- | -------------------------- |
+| Internet access  | Required for sync | ❌ Offline only             |
+| Cloud backup     | External          | ❌ None — encrypted locally |
+| Malware exposure | Possible          | ❌ Isolated firmware        |
+| Screen privacy   | Shared device     | ✅ Dedicated hardware       |
+| Power source     | Battery dependent | ✅ USB powered              |
+| Auditability     | Closed source     | ✅ Fully open source        |
+
+ZeroKeyUSB becomes your **personal authenticator**, integrated directly into the same secure device that holds your passwords.
+
+---
+
+## Good practices
+
+- Add 2FA only for accounts you control — avoid secrets from shared devices.
+- Back up credentials before performing a factory reset.
+- When prompted to “scan QR code” by a website, choose “Enter key manually” and copy the secret for ZeroKeyUSB import.
+
+---
+
+<Note>
+  ZeroKeyUSB’s TOTP engine follows the [RFC 6238 standard](https://datatracker.ietf.org/doc/html/rfc6238),\
+  the same open specification used by Google Authenticator and other mainstream 2FA tools.
+</Note>
