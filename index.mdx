@@ -1,13 +1,14 @@
 ---
-title: "What is ZeroKeyUSB?"
-description: "An offline hardware password manager designed for privacy, durability, and universal compatibility."
+title: "ZeroKeyUSB Documentation"
+description: "Central hub for guides, hardware specs, firmware internals, and support resources."
 ---
 
 ## Welcome
 
-**ZeroKeyUSB** is a standalone, hardware-based password manager designed to keep your credentials completely offline.  
-It works like a USB keyboard — automatically typing your encrypted passwords, usernames, and 2FA codes wherever you need them.  
+**ZeroKeyUSB** is a standalone, hardware-based password manager designed to keep your credentials completely offline.
+It behaves like a USB keyboard — typing your encrypted usernames, passwords, and 2FA codes wherever you need them.
 No apps. No cloud. No subscriptions.
+The documentation below gathers everything you need to assemble the hardware, understand the firmware, and keep your device secure.
 
 <Card
   title="Get started"
@@ -76,32 +77,46 @@ No apps. No cloud. No subscriptions.
 
 <Columns cols={2}>
   <Card
+    title="Quickstart"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Step-by-step guide for powering on, creating your Master PIN, and storing your first credentials.
+  </Card>
+  <Card
     title="Hardware"
     icon="microchip"
     href="/hardware/overview"
   >
-    Schematics, components list, and I²C memory map of the M24C64-WMN6TP.
+    Schematics, component selection, and details on the M24C64-WMN6TP secure EEPROM.
   </Card>
   <Card
     title="Firmware"
     icon="code"
     href="/firmware/architecture"
   >
-    Explore the modular architecture — from the display and menu system to secure EEPROM management.
+    Dive into the architecture covering display handling, menu navigation, and keyboard output routines.
   </Card>
   <Card
     title="Security"
     icon="shield"
     href="/firmware/security"
   >
-    Understand how ZeroKeyUSB implements AES-128 encryption, signature verification, and PIN-based access control.
+    Learn how AES-128 encryption, signature verification, and PIN-based access control work together.
   </Card>
   <Card
-    title="TOTP"
-    icon="clock"
-    href="/firmware/totp"
+    title="API Reference"
+    icon="book"
+    href="/api-reference/introduction"
   >
-    Learn how Time-based One-Time Passwords are generated and managed securely.
+    REST endpoints for managing credentials programmatically and integrating ZeroKeyUSB into tooling.
+  </Card>
+  <Card
+    title="Support"
+    icon="lifebuoy"
+    href="/support"
+  >
+    Troubleshooting steps, FAQs, and how to request community or professional assistance.
   </Card>
 </Columns>
 
