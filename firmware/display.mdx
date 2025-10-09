@@ -1,0 +1,75 @@
+---
+title: "Display System"
+description: "How the OLED UI is rendered, animated, and kept secure while you browse your credentials."
+---
+
+## 128×32 pixels with purpose
+
+ZeroKeyUSB uses a **white OLED panel (SSD1306 controller)** with a 128×32 resolution.
+The firmware keeps the interface intentionally minimal: large typography, clear icons, and smooth scroll areas that work even in low light.
+
+```
+┌───────────────────────┐
+│ MENU                  │
+│ > Backup              │
+│   Settings            │
+│   TOTP                │
+│   Danger Zone         │
+│   Info                │
+└───────────────────────┘
+```
+
+Every screen uses a 1-bit frame buffer stored in SRAM and transferred over I²C at 400 kHz.
+
+---
+
+## Rendering pipeline
+
+1. **Frame buffer build** – the application composes the entire screen in RAM using helper functions such as `draw_text()`, `draw_icon()`, and `draw_progress()`.
+2. **Diff detection** – only the pages that changed since the last frame are sent to the OLED, reducing I²C traffic.
+3. **VSync pacing** – a 60 Hz timer ensures updates feel immediate without flicker.
+
+This approach keeps the display responsive even while the device computes encryption or TOTP codes.
+
+---
+
+## Typography & icons
+
+| Asset            | Format  | Purpose                                      |
+| ---------------- | ------- | -------------------------------------------- |
+| **Main font**    | Custom 6×12 bitmap | Used for menus, lists, and info screens. |
+| **Mono font**    | 8×12 bitmap | Optimized for passwords and 2FA codes.       |
+| **Icons**        | 16×16 sprites | Backup, settings, clock, warning, info.     |
+
+Fonts are embedded directly in flash memory. When a password is displayed or typed, the characters are rendered using the mono font to avoid ambiguity between similar glyphs (e.g., `O` vs `0`).
+
+---
+
+## Scrolling & focus
+
+- **Auto-scroll** – long site names scroll horizontally with easing to remain readable.
+- **Focus highlight** – the currently selected option is inverted, while others stay dimmed.
+- **Long-press feedback** – a filling progress bar appears during destructive confirmations (factory reset, delete all).
+
+Animations are performed through lightweight tweening functions that never block the main loop.
+
+---
+
+## Secure display practices
+
+- Sensitive fields (passwords, TOTP secrets) are **masked by default** and only revealed for a few seconds when the user confirms the action.
+- After typing credentials, the firmware clears the frame buffer to remove any residual characters from RAM.
+- If the device remains idle for **60 seconds**, it automatically returns to the lock screen and wipes the buffer again.
+
+---
+
+## Diagnostics view
+
+A hidden diagnostic screen (accessible only during factory testing) shows I²C bus status, touch raw values, and firmware version.
+It is **disabled** in production builds to avoid leaking debugging information.
+
+---
+
+<Note>
+The OLED is encapsulated behind the resin window, making it resilient to scratches and moisture while keeping contrast pristine.
+</Note>

@@ -1,0 +1,100 @@
+---
+title: "USB Utilities"
+description: "Keyboard layouts, host commands, and other utilities that make ZeroKeyUSB versatile without sacrificing security."
+---
+
+## Dual USB personality
+
+ZeroKeyUSB exposes two USB interfaces simultaneously:
+
+1. **HID Keyboard** – types usernames, passwords, and hotkeys exactly like a physical keyboard.
+2. **Vendor serial channel** – a lightweight protocol used for backups, diagnostics, and time synchronization.
+
+Both stay active after unlocking, but sensitive actions require explicit confirmation on the device.
+
+---
+
+## Keyboard layout engine
+
+The firmware ships with a compact layout table stored inside flash memory. Each layout defines how characters map to USB HID keycodes.
+
+| Layout ID | Name        | Notes |
+| --------- | ----------- | ----- |
+| `0`       | US ANSI     | Default shipping layout. |
+| `1`       | ES Spanish  | Handles `ñ`, inverted punctuation, and Euro symbol. |
+| `2`       | FR AZERTY   | Adjusts digits and accented characters. |
+| `3`       | DE QWERTZ   | Ensures `Z`/`Y` swap and umlauts. |
+| `4`       | Custom slot | User-defined layout uploaded during factory configuration. |
+
+Changing the layout from the Settings menu updates the active table immediately; no reboot required.
+
+### Smart typing flow
+
+When you select a credential, the keyboard engine performs a scripted output:
+
+1. Types the **username**.
+2. Sends a `Tab` key.
+3. Types the **password**.
+4. Optionally types the **TOTP code** if auto-fill is enabled for that entry.
+
+If a field contains the special token `{ENTER}`, the firmware injects a final `Enter` key press at the end, allowing single-touch logins for services that require immediate submission.
+
+---
+
+## Serial command set
+
+The vendor serial channel communicates over 115200 bps with line-delimited JSON messages.
+Only authenticated sessions (after PIN unlock) can trigger sensitive commands.
+
+| Command          | Direction | Description |
+| ---------------- | ---------- | ----------- |
+| `PING`           | Host → Device | Returns `{ "ok": true, "fw": "1.0.0" }` for health checks. |
+| `REQTIME`        | Device → Host | Requests current Unix time. Host replies with `SETTIME 1706227200`. |
+| `EXPORT`         | Host → Device | Streams encrypted credential blocks for offline backup. |
+| `IMPORT`         | Host → Device | Restores a backup created on the same device/PIN. Requires long-press confirmation on the device. |
+| `FACTORY_RESET`  | Host → Device | Arms a secure wipe. The device shows a warning and needs a 5-second long press to execute. |
+
+All messages are short, human-readable, and easy to audit.
+
+---
+
+## Time synchronization
+
+TOTP codes rely on accurate time. When the device asks for synchronization, send the host time once:
+
+```
+REQTIME        # displayed on screen
+SETTIME 1706227200
+```
+
+The firmware stores the timestamp (encrypted) and maintains a monotonic counter using the SAMD21 RTC.
+If the drift exceeds ±90 seconds, it will request time again.
+
+---
+
+## Backup workflow
+
+1. Unlock the device and open **Menu → Backup → Export**.
+2. Start the companion CLI or web manager; it listens to the serial stream.
+3. The device sends an encrypted CSV-like payload (site, username, password, TOTP flag).
+4. To restore, choose **Import** and provide the same file. The firmware verifies integrity before writing.
+
+Backups remain useless without the original PIN because the encryption key never leaves the device.
+
+---
+
+## Safe factory reset
+
+Triggering `FACTORY_RESET` wipes:
+
+- All credential blocks
+- PIN signature and failed-attempt counters
+- Initialization vector (a fresh IV is created on next boot)
+
+A visible countdown (`Hold to confirm: 5…0`) ensures the action cannot be triggered accidentally by software alone.
+
+---
+
+<Note>
+There is no debugging backdoor on the serial channel. Every command is documented and requires physical confirmation when it could affect stored secrets.
+</Note>
