@@ -1,64 +1,72 @@
 ---
-title: 'Resolución de problemas'
-description: 'Pasos recomendados para diagnosticar y corregir incidencias comunes.'
+title: 'Troubleshooting'
+description: 'Recommended steps to diagnose and fix common issues with ZeroKeyUSB.'
 ---
 
-> Sigue las secciones en orden: muchas averías se resuelven al completar los pasos previos.
+> Follow the sections in order — many issues are resolved after completing the previous steps.
 
-## Antes de comenzar
+## Before You Begin
 
-1. Revisa que el dispositivo tenga alimentación estable y que los cables estén bien conectados.
-2. Comprueba que cuentas con la última versión de firmware y software disponible.
-3. Anota los mensajes de error exactos y cualquier cambio reciente en la configuración.
-4. Si es posible, realiza una copia de seguridad de la configuración actual antes de aplicar cambios.
+1. Ensure the device is receiving stable power through the USB-C connection.
+2. Verify that you are using the latest firmware version.
+3. Note down any error messages shown on the OLED screen and recent configuration changes.
+4. If possible, back up your credentials via the **web manager** before making changes.
 
-## Tabla rápida de síntomas y soluciones
+## Quick Symptom & Solution Table
 
-| Síntoma | Posible causa | Solución recomendada |
+| Symptom | Possible Cause | Recommended Action |
 | --- | --- | --- |
-| El dispositivo no enciende | Fuente de alimentación defectuosa o desconectada | Verifica conexiones, prueba con otra fuente, asegúrate de que el interruptor principal esté en "ON" |
-| No se conecta a la red | Credenciales incorrectas o DHCP deshabilitado | Revisa SSID/contraseña, valida que el router tenga DHCP activo, reinicia el equipo |
-| Luces de estado en rojo | Error de firmware o sobrecalentamiento | Apaga el equipo, déjalo enfriar, actualiza a la última versión de firmware |
-| Latencia elevada | Saturación de recursos o interferencias | Reduce la carga de procesos, revisa interferencias en la banda inalámbrica, cambia de canal |
+| The device does not power on | USB cable or port not supplying power | Try a different USB-C cable or port; avoid USB hubs; connect directly to a PC or power bank |
+| OLED screen stays blank | Display driver not initialized or firmware update interrupted | Reflash the latest firmware; disconnect and reconnect after 30 s |
+| Touch buttons unresponsive | TS06 touch controller not detected or miscalibrated | Clean the golden pads, reconnect, and reboot; re-run the setup wizard if needed |
+| “EEPROM read fail” or “IV not found” error | Memory communication issue (M24C64-WMN6TP) | Power-cycle the device and retry; if persistent, check solder joints on the EEPROM |
+| Wrong PIN delays access | Too many failed attempts triggered the exponential lockout | Wait for the countdown to finish and retry with the correct PIN |
+| TOTP shows “Request host time” | Epoch not synced with host | Open the web manager and sync the current time before generating codes |
 
-## Procedimientos paso a paso
+## Step-by-Step Procedures
 
-### 1. Reinicio seguro
+### 1. Safe Restart
 
-- Apaga el dispositivo usando el botón físico o el panel de administración.
-- Desconecta la alimentación durante 30 segundos.
-- Vuelve a conectar y espera al menos 2 minutos para que arranque completamente.
+- Unplug the ZeroKeyUSB.
+- Wait 30 seconds.
+- Reconnect it to a USB power source (PC or phone).  
+  The splash screen should appear within 5 seconds.
 
-### 2. Restablecer conexiones de red
+### 2. Reset Touch Controller
 
-1. Verifica que el cable Ethernet o la señal Wi-Fi estén activos.
-2. Ejecuta un `ping` hacia la puerta de enlace para confirmar conectividad local.
-3. Si no hay respuesta, libera y renueva la dirección IP o reinicia el router.
+1. Disconnect and reconnect the device.
+2. Wait until the **ZeroKeyUSB** logo appears.
+3. Lightly tap each golden pad to verify all five respond.  
+   If not, re-enter the **Setup Wizard** from the menu.
 
-### 3. Actualización de firmware
+### 3. Firmware Update
 
-1. Consulta la sección de [Firmware](../firmware/menu.mdx) para descargar la versión más reciente.
-2. Sigue las instrucciones del asistente de actualización y evita desconectar el dispositivo durante el proceso.
-3. Una vez completado, confirma la versión instalada en el panel de administración.
+1. Visit the [Firmware](../firmware/menu.mdx) section to download the latest `.uf2` file.
+2. Enter bootloader mode by quickly reconnecting the device twice within one second.
+3. Copy the new firmware file to the drive named **ZEROBOOT**.
+4. After flashing, reconnect normally and confirm the version in **Menu → Settings → About**.
 
-### 4. Restauración de configuración
+### 4. Factory Reset and Configuration Restore
 
-- Exporta la configuración actual como respaldo.
-- Realiza un restablecimiento de fábrica utilizando el botón físico (mantén presionado 10 segundos) o desde el software.
-- Importa la copia de seguridad o reconfigura los parámetros clave manualmente.
+- Export credentials via the web interface (`Backup → Export`).
+- Hold the **center touch pad** for 10 seconds to perform a full factory reset.
+- Re-import your backup or reconfigure manually.
 
-## Cómo recopilar información para soporte
+## Collecting Data for Support
 
-- Genera un paquete de logs desde el panel de administración y guárdalo en un archivo `.zip`.
-- Toma capturas de pantalla de los mensajes de error y anota la hora exacta en la que se produjeron.
-- Incluye el número de serie del dispositivo y la versión de firmware en tu solicitud.
+- Connect via USB and open the **Serial Monitor** at `9600 baud` to capture log messages.
+- Take photos of any on-screen errors.
+- Include the **serial number** (`SN ZK-XXXXXXXX`) and **firmware version** from the **About** menu.
 
-## Contactar al equipo de soporte
+## Contacting Support
 
-Si después de seguir estos pasos el problema persiste:
+If problems persist:
 
-- Abre un ticket en el centro de soporte adjuntando los archivos recopilados.
-- Indica qué pasos de esta guía has completado y los resultados obtenidos.
-- Nuestro equipo responderá en menos de 24 horas laborables con instrucciones adicionales.
+- Submit a support ticket on [zerokeyusb.com/support](https://zerokeyusb.com/support) with:
+  - Device serial number  
+  - Firmware version  
+  - Error messages and screenshots  
+  - Steps you’ve already tried
+- Our team will respond within **24 business hours** with further guidance.
 
-> Consejo: Mantén esta guía a mano y regístrala en la wiki interna de tu equipo para facilitar la resolución de futuros incidentes.
+> **Tip:** Save this guide in your internal wiki or workspace to simplify future troubleshooting.
