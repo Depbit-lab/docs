@@ -1,0 +1,31 @@
+---
+title: "Actualizar firmware"
+description: "Despliega una nueva versión de firmware a un ZeroKeyUSB"
+---
+
+```bash
+zerokey cli firmware push --device=<serie> --file=paquete.zkfw --schedule=immediate
+```
+
+## Parámetros
+
+| Nombre | Tipo | Obligatorio | Descripción |
+| --- | --- | --- | --- |
+| `device` | string | Sí | Número de serie o grupo de dispositivos. |
+| `file` | string | Sí | Ruta al paquete de firmware firmado. |
+| `schedule` | enum(immediate, window) | No | Define si se aplica de inmediato o en la siguiente ventana programada. |
+| `window` | string | No | Rango horario en formato `YYYY-MM-DDThh:mm/YYYY-MM-DDThh:mm`.
+
+## Seguimiento
+
+```bash
+zerokey cli firmware status --device=<serie> --watch
+```
+
+La respuesta incluye porcentaje de progreso y eventos de auditoría.
+
+## Consideraciones
+
+- El dispositivo entra en modo seguro durante la actualización y bloquea el acceso de usuarios.
+- El firmware previo se conserva para permitir rollback.
+- Si la verificación de firma falla, la operación se cancela automáticamente y se registra un evento crítico.
