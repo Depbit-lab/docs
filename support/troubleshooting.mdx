@@ -7,66 +7,86 @@ description: 'Recommended steps to diagnose and fix common issues with ZeroKeyUS
 
 ## Before You Begin
 
-1. Ensure the device is receiving stable power through the USB-C connection.
-2. Verify that you are using the latest firmware version.
-3. Note down any error messages shown on the OLED screen and recent configuration changes.
-4. If possible, back up your credentials via the **web manager** before making changes.
+1. Ensure the device is receiving stable power through the USB-C connection.  
+2. Confirm that you are using the **original factory firmware** (updates are rarely needed).  
+3. Note any on-screen error messages and recent configuration changes.  
+4. If possible, back up your credentials via the **local web manager** before making changes.
+
+---
 
 ## Quick Symptom & Solution Table
 
 | Symptom | Possible Cause | Recommended Action |
 | --- | --- | --- |
-| The device does not power on | USB cable or port not supplying power | Try a different USB-C cable or port; avoid USB hubs; connect directly to a PC or power bank |
-| OLED screen stays blank | Display driver not initialized or firmware update interrupted | Reflash the latest firmware; disconnect and reconnect after 30 s |
-| Touch buttons unresponsive | TS06 touch controller not detected or miscalibrated | Clean the golden pads, reconnect, and reboot; re-run the setup wizard if needed |
-| “EEPROM read fail” or “IV not found” error | Memory communication issue (M24C64-WMN6TP) | Power-cycle the device and retry; if persistent, check solder joints on the EEPROM |
-| Wrong PIN delays access | Too many failed attempts triggered the exponential lockout | Wait for the countdown to finish and retry with the correct PIN |
-| TOTP shows “Request host time” | Epoch not synced with host | Open the web manager and sync the current time before generating codes |
+| Device does not power on | USB cable or port not supplying power | Try a different USB-C cable or port; avoid USB hubs; connect directly to a PC or power bank |
+| OLED screen stays blank | Display initialization delay or EEPROM not responding | Wait 5 seconds after connection; if persistent, reconnect or check solder joints on the EEPROM |
+| Touch buttons unresponsive | TS06 controller not detected or miscalibrated | Clean the golden pads and reconnect; if still unresponsive, perform a factory reset |
+| `EEPROM ERROR` or `IV MISSING` on screen | Memory communication or data corruption | Power-cycle and retry; if persistent, contact support for inspection |
+| Wrong PIN delays access | Exponential lockout triggered after failed attempts | Wait for the countdown to complete and retry with the correct PIN |
+| TOTP shows `REQTIME` | Time not synchronized with host | Use the web manager and press **Sync Time** before generating codes |
+
+---
 
 ## Step-by-Step Procedures
 
 ### 1. Safe Restart
 
-- Unplug the ZeroKeyUSB.
-- Wait 30 seconds.
-- Reconnect it to a USB power source (PC or phone).  
-  The splash screen should appear within 5 seconds.
+- Unplug ZeroKeyUSB.  
+- Wait about **5 seconds**.  
+- Reconnect to a USB power source (PC or phone).  
+  The splash screen should appear within 3–5 seconds.
 
 ### 2. Reset Touch Controller
 
-1. Disconnect and reconnect the device.
-2. Wait until the **ZeroKeyUSB** logo appears.
-3. Lightly tap each golden pad to verify all five respond.  
-   If not, re-enter the **Setup Wizard** from the menu.
+1. Disconnect and reconnect the device.  
+2. Wait until the **ZeroKeyUSB** logo appears.  
+3. Tap each golden pad to confirm all five respond.  
+   If touch remains unresponsive, perform a **factory reset** to recalibrate automatically.
 
-### 3. Firmware Update
+### 3. Firmware Flash (development units only)
 
-1. Visit the [Firmware](../firmware/menu.mdx) section to download the latest `.uf2` file.
-2. Enter bootloader mode by quickly reconnecting the device twice within one second.
-3. Copy the new firmware file to the drive named **ZEROBOOT**.
-4. After flashing, reconnect normally and confirm the version in **Menu → Settings → About**.
+> ⚠️ Production devices are resin-encapsulated and cannot be reflashed by the user.  
+> This section applies **only to pre-production boards**.
 
-### 4. Factory Reset and Configuration Restore
+1. Quickly reconnect the USB cable twice within one second to enter bootloader mode.  
+2. Copy the firmware `.uf2` file to the drive named **ZEROBOOT**.  
+3. Wait for the file transfer to complete, then reconnect normally.  
+4. Verify the firmware version under **Menu → Settings → About**.
 
-- Export credentials via the web interface (`Backup → Export`).
-- Hold the **center touch pad** for 10 seconds to perform a full factory reset.
-- Re-import your backup or reconfigure manually.
+### 4. Factory Reset and Reconfiguration
+
+- Export credentials via the web manager (**Backup → Export**).  
+- Hold the **center touch pad** for about 10 seconds until the confirmation countdown appears.  
+- The process erases all memory, including credentials, PIN signature, and IV.  
+- After restart, re-import your backup or run the first-time setup again.
+
+---
 
 ## Collecting Data for Support
 
-- Connect via USB and open the **Serial Monitor** at `9600 baud` to capture log messages.
-- Take photos of any on-screen errors.
-- Include the **serial number** (`SN ZK-XXXXXXXX`) and **firmware version** from the **About** menu.
+- Connect the device and open the **Serial Monitor** at **115200 bps** to capture log output.  
+- Take photos of any on-screen errors.  
+- Note the **serial number** (`SN ZK-XXXXXXXX`) and **firmware version** from **Menu → Settings → About**.
+
+---
 
 ## Contacting Support
 
 If problems persist:
 
-- Submit a support ticket on [zerokeyusb.com/support](https://zerokeyusb.com/support) with:
+- Submit a support ticket at [zerokeyusb.com/support](https://zerokeyusb.com/support) including:
   - Device serial number  
   - Firmware version  
-  - Error messages and screenshots  
-  - Steps you’ve already tried
-- Our team will respond within **24 business hours** with further guidance.
+  - Screenshots or photos of the issue  
+  - Steps you’ve already tried  
+- Our team will reply within **24 business hours** with further guidance.
 
-> **Tip:** Save this guide in your internal wiki or workspace to simplify future troubleshooting.
+> ⚠️ **Do not attempt to open or reflash a sealed device.**  
+> Doing so will destroy the waterproof encapsulation and void warranty.
+
+---
+
+<Note>
+This guide covers user-level diagnostics.  
+For factory calibration or advanced debugging, contact authorized service partners directly.
+</Note>
