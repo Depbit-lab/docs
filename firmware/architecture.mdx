@@ -5,33 +5,32 @@ description: "Understand how the ZeroKeyUSB firmware is organized, from low-leve
 
 ## Modular by design
 
-ZeroKeyUSB firmware is written in C++ for the **Microchip SAMD21** microcontroller.
+ZeroKeyUSB firmware is written in C++ for the **Microchip SAMD21** microcontroller.  
 It follows a layered architecture that keeps hardware drivers, security primitives, and the user interface cleanly separated.
 
-```
 ┌───────────────────────────────┐
-│  Application logic            │  ← credential manager, menu flow, host commands
+│ Application logic │ ← credential manager, menu flow, host commands
 ├───────────────────────────────┤
-│  Services & security layer    │  ← encryption, TOTP engine, PIN gatekeeper
+│ Services & security layer │ ← encryption, TOTP engine, PIN gatekeeper
 ├───────────────────────────────┤
-│  Drivers & hardware helpers   │  ← OLED, touch controller, I²C EEPROM, USB HID
+│ Drivers & hardware helpers │ ← OLED, touch controller, I²C EEPROM, USB HID
 ├───────────────────────────────┤
-│  SAMD21 HAL / CMSIS           │
+│ SAMD21 HAL / CMSIS │
 └───────────────────────────────┘
-```
 
-Each block can evolve independently while keeping critical security routines audited and easy to review.
+
+Each module can evolve independently while keeping critical security routines auditable and easy to review.
 
 ---
 
 ## Boot sequence
 
-1. **Power-on self-test** – validates clock configuration, memory integrity, and ensures the EEPROM responds on the I²C bus.
-2. **Entropy gathering** – if the initialization vector (IV) is missing, a new one is created using analog noise from floating pins.
-3. **PIN gatekeeper** – the device stays locked until the user enters the correct Master PIN. Only then are encrypted blocks decrypted in RAM.
-4. **Runtime services** – the menu system, USB keyboard stack, and TOTP scheduler are started.
+1. **Power-on self-test** – validates clock configuration, memory integrity, and ensures the EEPROM responds on the I²C bus.  
+2. **Entropy gathering** – if the initialization vector (IV) is missing, a new one is generated using analog noise from a floating pin.  
+3. **PIN gatekeeper** – the device remains locked until the user enters the correct Master PIN. Only then are encrypted blocks decrypted in RAM.  
+4. **Runtime services** – the menu system, USB HID keyboard, and TOTP engine are initialized.
 
-If any step fails, the firmware displays a descriptive error (e.g., `EEPROM ERROR`) and blocks further execution to avoid exposing partial data.
+If any step fails, the firmware displays a descriptive error (e.g., `EEPROM ERROR`) and halts execution to avoid exposing partial data.
 
 ---
 
@@ -39,25 +38,27 @@ If any step fails, the firmware displays a descriptive error (e.g., `EEPROM ERRO
 
 ### 🔐 Credential vault
 
-- Stores up to **64 credentials**, each split into encrypted blocks (site, username, password, optional TOTP secret).
-- Performs read-after-write verification to guarantee EEPROM integrity.
-- Keeps decrypted data in RAM only for the minimum time needed to type it through USB HID.
+- Stores up to **64 credentials**, each split into encrypted blocks (site, username, password, optional TOTP secret).  
+- Confirms EEPROM writes through I²C acknowledgment to ensure successful completion.  
+- Keeps decrypted data in RAM only as long as necessary to type it via USB HID output.
 
 ### 🛡️ PIN gatekeeper
 
-- Derives the AES-128 key from the Master PIN using a salted KDF.
-- Validates the PIN by decrypting a signature block.
-- Implements exponential lockout delays after failed attempts.
+- Uses the Master PIN directly as the **AES-128 key** (future versions may add a salted KDF).  
+- Validates the PIN by decrypting and comparing the stored signature block.  
+- Applies exponential lockout delays after failed attempts, with counters stored in EEPROM for persistence.
 
 ### ⏱️ Scheduler
 
-- Coordinates display refresh, touch sampling, and USB reports at **1 ms** ticks.
-- Ensures TOTP codes are recalculated precisely every 30 seconds without blocking the UI.
+- Coordinates display refresh, touch polling, and USB reports on a cooperative timing loop (~1 ms granularity).  
+- Recalculates TOTP codes every 30 seconds without blocking the UI.  
+- No interrupts or preemptive scheduling — timing is deterministic and fully controlled in firmware.
 
 ### 🔄 Host command handler
 
-- Listens to simple serial commands over the secondary USB interface.
-- Supports backup/restore, time synchronization, and secure factory reset requests.
+- Operates through the **CDC endpoint** of the composite USB interface (HID + Serial).  
+- Handles local commands for backup, restore, time synchronization, and factory reset.  
+- Transfers occur in **plaintext** and are meant strictly for **offline use** via the local web manager or terminal.
 
 ---
 
@@ -65,46 +66,47 @@ If any step fails, the firmware displays a descriptive error (e.g., `EEPROM ERRO
 
 | Driver             | Responsibilities                                                                 | Interfaces |
 | ------------------ | ------------------------------------------------------------------------------- | ---------- |
-| **Display**        | Initializes the 128×32 OLED, renders glyphs, progress bars, and smooth scrolling | I²C        |
-| **Touch sensor**   | Calibrates TS06 thresholds, debounces taps, detects long presses                 | I²C        |
-| **EEPROM**         | Provides transactional reads/writes with integrity checks                        | I²C        |
-| **USB HID**        | Emulates a keyboard layout-aware output and a vendor serial endpoint             | USB FS     |
+| **Display**        | Initializes the 128×32 OLED, renders glyphs, progress bars, and smooth scrolling | I²C (400 kHz) |
+| **Touch sensor**   | Calibrates TS06 thresholds, debounces taps, detects long presses                 | I²C |
+| **EEPROM**         | Provides transactional reads/writes with I²C acknowledgment checks               | I²C |
+| **USB HID**        | Emulates a keyboard using a **US-QWERTY** layout and exposes a CDC serial endpoint | USB FS |
 
-Drivers expose predictable APIs (`display.render()`, `touch.poll()`, `eeprom.write_block()`) that keep the application layer small and auditable.
+All drivers expose consistent APIs (`display.render()`, `touch.poll()`, `eeprom.write_block()`) that keep the upper layers small and auditable.
 
 ---
 
 ## State machines everywhere
 
-Every interactive screen (lock screen, list view, credential editor, TOTP viewer, danger zone) is implemented as a **finite state machine**.
-This approach prevents unexpected flows and simplifies security audits:
+Every interactive screen — lock screen, credential list, editor, TOTP viewer, and danger zone — is implemented as a **finite state machine (FSM)**.  
+This deterministic design simplifies debugging and formal security review:
 
-- Each state defines explicit transitions triggered by touch events.
-- Sensitive states (backup, factory reset) require long-press confirmations handled inside the same FSM.
-- Timeouts automatically return to the lock screen to avoid leaving decrypted data visible.
+- Each state defines explicit transitions triggered by touch events.  
+- Sensitive states (e.g., Backup, Factory Reset) require long-press confirmation within the same FSM.  
+- Inactivity timeouts automatically return to the lock screen, ensuring decrypted data is never left visible.
 
 ---
 
 ## Memory footprint
 
-| Region            | Size | Description                                                  |
-| ----------------- | ---- | ------------------------------------------------------------ |
-| **Flash**         | ~64 KB | Firmware code, fonts, icons, static strings.                  |
-| **SRAM**          | ~16 KB | UI buffers, decrypted credential cache, TOTP workspace.       |
-| **EEPROM**        | 8 KB | Encrypted user data, IV, PIN signature, metadata.            |
+| Region    | Size   | Description                                                  |
+| ---------- | ------ | ------------------------------------------------------------ |
+| **Flash**  | ~64 KB | Firmware code, fonts, icons, static strings.                 |
+| **SRAM**   | ~16 KB | UI buffers, decrypted credential cache, TOTP workspace.     |
+| **EEPROM** | 8 KB  | Encrypted user data, IV, PIN signature, metadata, counters.  |
 
-The build intentionally keeps margins to accommodate future audits or small feature additions without requiring OTA updates.
+The firmware is intentionally lightweight, leaving headroom for small audited features without any form of OTA or remote update.
 
 ---
 
 ## Build & verification
 
-- Compiled with **ARM GCC** using reproducible build flags.
-- Continuous integration runs unit tests on critical crypto helpers and EEPROM transactions.
-- The resulting binary is signed and flashed at the factory. End users never need to update or recompile it.
+- Compiled with **ARM GCC** under reproducible build flags for deterministic binaries.  
+- Builds are manually tested and verified on hardware before release.  
+- Firmware integrity is verified at the factory before flashing — there is **no remote update or binary signing mechanism** at runtime.
 
 ---
 
 <Note>
-The firmware is intentionally minimal: no RTOS, no dynamic memory allocation, and no hidden debug backdoors. Simplicity is a security feature.
+ZeroKeyUSB runs on a minimal firmware stack: no RTOS, no dynamic memory allocation, and no hidden debug backdoors.  
+All tasks are cooperative and time-deterministic — simplicity is treated as a security feature.
 </Note>
