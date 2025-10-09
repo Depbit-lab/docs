@@ -82,7 +82,7 @@
     "links": [
       {
         "label": "Guía de despliegue",
-        "href": "/quickstart"
+        "page": "quickstart"
       }
     ],
     "primary": {
