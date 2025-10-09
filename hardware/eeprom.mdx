@@ -1,5 +1,126 @@
 ---
-title: 'New file'
-description: 'Description of your new file.'
+title: "EEPROM Memory Map"
+description: "How ZeroKeyUSB stores encrypted credentials and why its memory architecture is designed for maximum safety."
 ---
 
+## Secure memory, not just storage
+
+ZeroKeyUSB uses an industrial-grade **ST M24C64-WMN6TP EEPROM**, a 64-kilobit non-volatile memory chip (8 KB total).  
+It was selected not for size, but for **reliability and data integrity** — critical in a device that may hold your most important credentials for years.
+
+All information inside this chip is **encrypted before being written**, and **verified after every operation**.  
+Even if removed from the board, the memory contains no usable information — only encrypted binary data.
+
+---
+
+## Key characteristics
+
+| Specification | Description |
+|----------------|--------------|
+| **Chip model** | ST M24C64-WMN6TP |
+| **Capacity** | 64 Kbit (8,192 bytes) |
+| **Interface** | I²C, 2-byte addressing |
+| **Endurance** | >1,000,000 write cycles |
+| **Data retention** | >40 years |
+| **Operating voltage** | 1.8 V – 5.5 V |
+| **Page size** | 32 bytes |
+
+The chip communicates directly with the **SAMD21 microcontroller** through an encrypted protocol layer implemented in firmware.  
+The encryption and integrity checks happen **before** any data reaches the physical memory.
+
+---
+
+## Internal structure overview
+
+ZeroKeyUSB’s EEPROM is divided into several protected regions.  
+Each region serves a specific security purpose and cannot be accessed outside its defined boundaries.
+
+| Address range | Size | Purpose |
+|----------------|------|----------|
+| `0x0000–0x0001` | 2 B | Internal flags / configuration marker |
+| `0x0002` | 1 B | Failed attempts counter |
+| `0x0005–0x000C` | 8 B | PIN verification signature |
+| `0x0010–0x001F` | 16 B | AES Initialization Vector (IV) |
+| `0x0020–0x03FF` | — | Reserved system area |
+| `0x0400–0x1FFF` | — | Encrypted credential storage (user data) |
+
+Each credential record occupies **three encrypted pages of 32 bytes each** (96 bytes total):
+1. **Site / service name**  
+2. **Username or email**  
+3. **Password**
+
+Optionally, a fourth page is used to store the **TOTP secret** (for 2FA).
+
+---
+
+## Data segmentation
+
+Segmenting data into separate encrypted pages offers several advantages:
+
+- 🔐 **Independent encryption:** Each field (site, user, password) is encrypted separately.  
+- 🧩 **No correlation:** Attackers cannot guess password lengths or patterns by comparing blocks.  
+- 💥 **Corruption isolation:** If one page is damaged, others remain valid.  
+- ⚡ **Fast updates:** Editing a single field only rewrites one page, extending chip lifespan.
+
+---
+
+## Security metadata
+
+### 🔑 Initialization Vector (IV)
+A unique 16-byte random value generated from hardware entropy during first startup.  
+It ensures that even identical data encrypted twice produces completely different ciphertext.
+
+### 🧩 PIN signature block
+A compact cryptographic fingerprint stored at address `0x0005`.  
+It allows ZeroKeyUSB to verify that the correct Master PIN has been entered — without storing the PIN itself.
+
+### 🕒 Failed-attempts counter
+Located at `0x0002`, this byte tracks the number of consecutive failed PIN entries.  
+It is used to calculate exponential lockout delays, protecting against brute-force attacks.
+
+---
+
+## Credential layout example
+
+Each credential slot follows this pattern inside the encrypted storage area:
+
+| Page | Content | Encrypted? | Size |
+|------|----------|------------|------|
+| 0 | Site / domain | ✅ | 32 B |
+| 1 | Username | ✅ | 32 B |
+| 2 | Password | ✅ | 32 B |
+| 3 | TOTP secret (optional) | ✅ | 32 B |
+| — | — | — | — |
+| **Total per slot** | — | — | **96–128 B** |
+
+Up to **64 credentials** can be stored securely in the available memory space.
+
+---
+
+## Data integrity and recovery
+
+Each write operation is immediately verified:
+- The firmware re-reads the page after writing.  
+- If data doesn’t match the encrypted checksum, it retries automatically.  
+- Any unrecoverable error triggers a message on screen (`EEPROM Error`) and safely aborts the process.
+
+ZeroKeyUSB never writes unencrypted or partial data — meaning your passwords are either **fully protected**, or **not stored at all**.
+
+---
+
+## Why it matters
+
+Most password managers rely on software encryption and the operating system’s storage.  
+ZeroKeyUSB isolates everything in hardware, with:
+- A dedicated memory chip designed for **40+ years of retention**.  
+- Encryption handled by the **microcontroller itself**, not the host.  
+- No wireless or network interfaces to exploit.
+
+Even with physical access to the memory chip, forensic tools cannot decrypt or correlate any content without your unique PIN and IV.
+
+---
+
+<Note>
+Transparency builds trust: the memory map is public so that users can verify the integrity of their device —  
+but all regions remain locked and encrypted during normal operation.
+</Note>
