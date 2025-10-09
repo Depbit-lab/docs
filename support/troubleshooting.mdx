@@ -1,5 +1,64 @@
 ---
-title: 'New file'
-description: 'Description of your new file.'
+title: 'Resolución de problemas'
+description: 'Pasos recomendados para diagnosticar y corregir incidencias comunes.'
 ---
 
+> Sigue las secciones en orden: muchas averías se resuelven al completar los pasos previos.
+
+## Antes de comenzar
+
+1. Revisa que el dispositivo tenga alimentación estable y que los cables estén bien conectados.
+2. Comprueba que cuentas con la última versión de firmware y software disponible.
+3. Anota los mensajes de error exactos y cualquier cambio reciente en la configuración.
+4. Si es posible, realiza una copia de seguridad de la configuración actual antes de aplicar cambios.
+
+## Tabla rápida de síntomas y soluciones
+
+| Síntoma | Posible causa | Solución recomendada |
+| --- | --- | --- |
+| El dispositivo no enciende | Fuente de alimentación defectuosa o desconectada | Verifica conexiones, prueba con otra fuente, asegúrate de que el interruptor principal esté en "ON" |
+| No se conecta a la red | Credenciales incorrectas o DHCP deshabilitado | Revisa SSID/contraseña, valida que el router tenga DHCP activo, reinicia el equipo |
+| Luces de estado en rojo | Error de firmware o sobrecalentamiento | Apaga el equipo, déjalo enfriar, actualiza a la última versión de firmware |
+| Latencia elevada | Saturación de recursos o interferencias | Reduce la carga de procesos, revisa interferencias en la banda inalámbrica, cambia de canal |
+
+## Procedimientos paso a paso
+
+### 1. Reinicio seguro
+
+- Apaga el dispositivo usando el botón físico o el panel de administración.
+- Desconecta la alimentación durante 30 segundos.
+- Vuelve a conectar y espera al menos 2 minutos para que arranque completamente.
+
+### 2. Restablecer conexiones de red
+
+1. Verifica que el cable Ethernet o la señal Wi-Fi estén activos.
+2. Ejecuta un `ping` hacia la puerta de enlace para confirmar conectividad local.
+3. Si no hay respuesta, libera y renueva la dirección IP o reinicia el router.
+
+### 3. Actualización de firmware
+
+1. Consulta la sección de [Firmware](../firmware/menu.mdx) para descargar la versión más reciente.
+2. Sigue las instrucciones del asistente de actualización y evita desconectar el dispositivo durante el proceso.
+3. Una vez completado, confirma la versión instalada en el panel de administración.
+
+### 4. Restauración de configuración
+
+- Exporta la configuración actual como respaldo.
+- Realiza un restablecimiento de fábrica utilizando el botón físico (mantén presionado 10 segundos) o desde el software.
+- Importa la copia de seguridad o reconfigura los parámetros clave manualmente.
+
+## Cómo recopilar información para soporte
+
+- Genera un paquete de logs desde el panel de administración y guárdalo en un archivo `.zip`.
+- Toma capturas de pantalla de los mensajes de error y anota la hora exacta en la que se produjeron.
+- Incluye el número de serie del dispositivo y la versión de firmware en tu solicitud.
+
+## Contactar al equipo de soporte
+
+Si después de seguir estos pasos el problema persiste:
+
+- Abre un ticket en el centro de soporte adjuntando los archivos recopilados.
+- Indica qué pasos de esta guía has completado y los resultados obtenidos.
+- Nuestro equipo responderá en menos de 24 horas laborables con instrucciones adicionales.
+
+> Consejo: Mantén esta guía a mano y regístrala en la wiki interna de tu equipo para facilitar la resolución de futuros incidentes.
