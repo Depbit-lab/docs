@@ -5,10 +5,11 @@ description: "Central hub for guides, hardware specs, firmware internals, and su
 
 ## Welcome
 
-**ZeroKeyUSB** is a standalone, hardware-based password manager designed to keep your credentials completely offline.
-It behaves like a USB keyboard — typing your encrypted usernames, passwords, and 2FA codes wherever you need them.
+**ZeroKeyUSB** is a standalone, hardware-based password manager designed to keep your credentials completely offline.  
+It behaves like a USB keyboard — typing your encrypted usernames, passwords, and optional TOTP codes wherever you need them.  
 No apps. No cloud. No subscriptions.
-The documentation below gathers everything you need to assemble the hardware, understand the firmware, and keep your device secure.
+
+Everything you need to **assemble the hardware**, **understand the firmware**, and **keep your device secure** is organized below.
 
 <Card
   title="Get started"
@@ -16,8 +17,10 @@ The documentation below gathers everything you need to assemble the hardware, un
   href="/quickstart"
   horizontal
 >
-  Learn how to flash the firmware, set your Master PIN, and start using ZeroKeyUSB.
+  Learn how to flash the firmware, set your Master PIN, and start using ZeroKeyUSB safely.
 </Card>
+
+---
 
 ## Main Features
 
@@ -27,8 +30,8 @@ The documentation below gathers everything you need to assemble the hardware, un
     icon="lock"
     href="/firmware/security"
   >
-    Uses AES-128 CBC encryption with unique IV generation per device.  
-    Your credentials never leave the hardware.
+    Protects your data using **AES-128 CBC encryption**, where the Master PIN directly derives the encryption key.  
+    No Internet connection is ever required.
   </Card>
 
   <Card
@@ -36,7 +39,8 @@ The documentation below gathers everything you need to assemble the hardware, un
     icon="microchip"
     href="/hardware/overview"
   >
-    No batteries, no internet — powered by USB-C and built around a SAMD21 microcontroller and M24C64-W EEPROM.
+    Built around a **SAMD21 microcontroller** and **M24C64-W EEPROM**, fully powered by **USB-C**.  
+    No batteries, no wireless chips — truly air-gapped.
   </Card>
 
   <Card
@@ -44,7 +48,8 @@ The documentation below gathers everything you need to assemble the hardware, un
     icon="keyboard"
     href="/firmware/utils"
   >
-    Emulates a standard USB keyboard with support for multiple layouts (US, ES, FR, DE...).
+    Acts as a standard **USB HID keyboard (US-QWERTY)** to type credentials into any focused field.  
+    Works across all major operating systems.
   </Card>
 
   <Card
@@ -52,15 +57,16 @@ The documentation below gathers everything you need to assemble the hardware, un
     icon="display"
     href="/firmware/display"
   >
-    Navigate your credentials and 2FA codes with a clear 128×32-pixel screen.
+    Navigate stored credentials and 2FA codes on a **128×32-pixel OLED screen** with auto-scroll for long text.
   </Card>
 
   <Card
-    title="Two-Factor Authentication (TOTP)"
+    title="Time-Based One-Time Passwords (TOTP)"
     icon="clock"
     href="/firmware/totp"
   >
-    Generate 2FA codes offline using HMAC-based algorithms (SHA-1/256/512).
+    Generate 6-digit 2FA codes **locally and offline**.  
+    Requires a one-time **time sync** from the host via USB — never through the Internet.
   </Card>
 
   <Card
@@ -68,10 +74,12 @@ The documentation below gathers everything you need to assemble the hardware, un
     icon="code"
     href="https://github.com/Depbit-lab/zerokeyusb"
   >
-    Every line of code and schematic is public.  
-    Verify what runs on your device — and contribute to improve it.
+    Every line of firmware and hardware schematic is public.  
+    Audit, verify, and contribute to improve the device.
   </Card>
 </Columns>
+
+---
 
 ## Documentation Overview
 
@@ -81,44 +89,51 @@ The documentation below gathers everything you need to assemble the hardware, un
     icon="rocket"
     href="/quickstart"
   >
-    Step-by-step guide for powering on, creating your Master PIN, and storing your first credentials.
+    Step-by-step guide to flash the firmware, create your Master PIN, and store your first credentials.
   </Card>
+
   <Card
     title="Hardware"
     icon="microchip"
     href="/hardware/overview"
   >
-    Schematics, component selection, and details on the M24C64-WMN6TP secure EEPROM.
+    Electrical schematics, component list, and EEPROM memory map for the **M24C64-WMN6TP**.
   </Card>
+
   <Card
     title="Firmware"
     icon="code"
     href="/firmware/architecture"
   >
-    Dive into the architecture covering display handling, menu navigation, and keyboard output routines.
+    Explore how modules interact: display, menu navigation, EEPROM storage, keyboard output, and TOTP generation.
   </Card>
+
   <Card
     title="Security"
     icon="shield"
     href="/firmware/security"
   >
-    Learn how AES-128 encryption, signature verification, and PIN-based access control work together.
+    Understand how AES-128 encryption, IV regeneration, and PIN-based access control secure your data.
   </Card>
+
   <Card
-    title="API Reference"
+    title="Compliance & Open Source"
     icon="book"
-    href="/api-reference/introduction"
+    href="/certifications"
   >
-    REST endpoints for managing credentials programmatically and integrating ZeroKeyUSB into tooling.
+    Certifications, licensing, and community contribution guidelines.
   </Card>
+
   <Card
     title="Support"
     icon="lifebuoy"
-    href="/support"
+    href="/support/faq"
   >
-    Troubleshooting steps, FAQs, and how to request community or professional assistance.
+    FAQs, troubleshooting steps, and how to reach the ZeroKeyUSB community or request professional help.
   </Card>
 </Columns>
+
+---
 
 ## Need help?
 
@@ -127,5 +142,5 @@ The documentation below gathers everything you need to assemble the hardware, un
   icon="link"
   href="https://zerokeyusb.com"
 >
-  Find guides, community links, and support resources.
+  Find user guides, updates, and community resources for ZeroKeyUSB.
 </Card>
