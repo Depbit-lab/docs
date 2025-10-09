@@ -1,97 +1,116 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "What is ZeroKeyUSB?"
+description: "An offline hardware password manager designed for privacy, durability, and universal compatibility."
 ---
 
-## Setting up
+## Welcome
 
-Get your documentation site up and running in minutes.
+**ZeroKeyUSB** is a standalone, hardware-based password manager designed to keep your credentials completely offline.  
+It works like a USB keyboard — automatically typing your encrypted passwords, usernames, and 2FA codes wherever you need them.  
+No apps. No cloud. No subscriptions.
 
 <Card
-  title="Start here"
+  title="Get started"
   icon="rocket"
-  href="/quickstart"
+  href="/getting-started"
   horizontal
 >
-  Follow our three step quickstart guide.
+  Learn how to flash the firmware, set your Master PIN, and start using ZeroKeyUSB.
 </Card>
 
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
+## Main Features
 
 <Columns cols={2}>
   <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
+    title="Offline Encryption"
+    icon="lock"
+    href="/firmware/security"
   >
-    Edit your docs locally and preview them in real time.
+    Uses AES-128 CBC encryption with unique IV generation per device.  
+    Your credentials never leave the hardware.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
 
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
   <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
+    title="Hardware Simplicity"
+    icon="microchip"
+    href="/hardware/overview"
   >
-    Use MDX to style your docs pages.
+    No batteries, no internet — powered by USB-C and built around a SAMD21 microcontroller and M24C64-W EEPROM.
   </Card>
+
   <Card
-    title="Code samples"
+    title="Universal Keyboard Output"
+    icon="keyboard"
+    href="/firmware/utils"
+  >
+    Emulates a standard USB keyboard with support for multiple layouts (US, ES, FR, DE...).
+  </Card>
+
+  <Card
+    title="Integrated OLED Display"
+    icon="display"
+    href="/firmware/display"
+  >
+    Navigate your credentials and 2FA codes with a clear 128×32-pixel screen.
+  </Card>
+
+  <Card
+    title="Two-Factor Authentication (TOTP)"
+    icon="clock"
+    href="/firmware/totp"
+  >
+    Generate 2FA codes offline using HMAC-based algorithms (SHA-1/256/512).
+  </Card>
+
+  <Card
+    title="Open Source & Transparent"
     icon="code"
-    href="/essentials/code"
+    href="https://github.com/Depbit-lab/zerokeyusb"
   >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+    Every line of code and schematic is public.  
+    Verify what runs on your device — and contribute to improve it.
   </Card>
 </Columns>
 
-## Need inspiration?
+## Documentation Overview
+
+<Columns cols={2}>
+  <Card
+    title="Hardware"
+    icon="microchip"
+    href="/hardware/overview"
+  >
+    Schematics, components list, and I²C memory map of the M24C64-WMN6TP.
+  </Card>
+  <Card
+    title="Firmware"
+    icon="code"
+    href="/firmware/architecture"
+  >
+    Explore the modular architecture — from the display and menu system to secure EEPROM management.
+  </Card>
+  <Card
+    title="Security"
+    icon="shield"
+    href="/firmware/security"
+  >
+    Understand how ZeroKeyUSB implements AES-128 encryption, signature verification, and PIN-based access control.
+  </Card>
+  <Card
+    title="TOTP"
+    icon="clock"
+    href="/firmware/totp"
+  >
+    Learn how Time-based One-Time Passwords are generated and managed securely.
+  </Card>
+</Columns>
+
+## Need help?
 
 <Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
+  title="Visit zerokeyusb.com"
+  icon="link"
+  href="https://zerokeyusb.com"
 >
-  Browse our showcase of exceptional documentation sites.
+  Find guides, community links, and support resources.
 </Card>
