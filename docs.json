@@ -55,6 +55,7 @@
               {
                 "group": "Security",
                 "pages": [
+                  "firmware/security",
                   "firmware/security/aes-128-encryption",
                   "firmware/security/pin-verification",
                   "firmware/security/iv-generation"
@@ -87,7 +88,7 @@
         ]
       },
       {
-        "tab": "Dowloads",
+        "tab": "Downloads",
         "groups": [
           {
             "group": "Reference",
