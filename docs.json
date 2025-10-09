@@ -1,5 +1,6 @@
 {
   "name": "ZeroKeyUSB Docs",
+  "theme": "mint",
   "navigation": [
     { "group": "Introduction", "pages": ["index","getting-started"] },
     { "group": "Hardware", "pages": ["hardware/overview","hardware/eeprom","hardware/touch-sensor"] },
