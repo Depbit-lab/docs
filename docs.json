@@ -14,33 +14,64 @@
         "tab": "Documentation",
         "groups": [
           {
-            "group": "Overview",
+            "group": "Introduction",
             "pages": [
               "index",
-              "quickstart"
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "quickstart",
+                  "getting-started/importing-credentials",
+                  "getting-started/creating-backups"
+                ]
+              }
             ]
           },
           {
             "group": "Hardware",
             "pages": [
               "hardware/overview",
+              "hardware/mcu-samd21",
+              "hardware/display-ssd1306",
               "hardware/touch-sensor",
-              "hardware/eeprom"
+              "hardware/eeprom",
+              "hardware/usb-interface"
             ]
           },
           {
             "group": "Firmware",
             "pages": [
               "firmware/architecture",
-              "firmware/menu",
-              "firmware/display",
-              "firmware/utils",
-              "firmware/totp",
-              "firmware/security"
+              {
+                "group": "Core Modules",
+                "pages": [
+                  "firmware/menu",
+                  "firmware/display",
+                  "firmware/io-touch-handling",
+                  "firmware/eeprom-management",
+                  "firmware/usb-utilities"
+                ]
+              },
+              {
+                "group": "Security",
+                "pages": [
+                  "firmware/security/aes-128-encryption",
+                  "firmware/security/pin-verification",
+                  "firmware/security/iv-generation"
+                ]
+              },
+              {
+                "group": "Two-Factor Authentication (TOTP)",
+                "pages": [
+                  "firmware/totp",
+                  "firmware/totp/epoch-synchronization",
+                  "firmware/totp/web-time-sync-tool"
+                ]
+              }
             ]
           },
           {
-            "group": "Compliance & Community",
+            "group": "Compliance",
             "pages": [
               "certifications",
               "open-source"
