@@ -1,0 +1,66 @@
+---
+title: "USB Interface"
+description: "How ZeroKeyUSB powers up, enumerates, and secures communications over USB-C."
+---
+
+ZeroKeyUSB connects through a **USB-C receptacle** but behaves as a classic USB 2.0 full-speed device. The board keeps the wiring simple so that any USB-A or USB-C host can power and communicate with the key.
+
+---
+
+## Connector wiring
+
+| Pin | Function | Notes |
+| --- | --- | --- |
+| A1/B12 | GND | Tied together for symmetrical cables |
+| A4/B9 | VBUS | 5 V input (up to 500 mA) |
+| A5 | CC1 | 5.1 kΩ pull-down (Rd) advertises device mode |
+| B5 | CC2 | 5.1 kΩ pull-down (Rd) for flipping cables |
+| A6/B6 | D+ | Routed to SAMD21 USB pins |
+| A7/B7 | D− | Routed to SAMD21 USB pins |
+
+No high-speed pairs or USB 3.x pins are used. Shield is connected to ground through a 1 MΩ resistor and 10 nF capacitor for ESD suppression.
+
+---
+
+## Power path
+
+- VBUS feeds a **3.3 V LDO regulator** (TPS73533) that powers the SAMD21, OLED, touch controller, and EEPROM.
+- Total current stays under **120 mA** during OLED animations, well within USB 2.0 limits.
+- Reverse current protection prevents powering the host when the device is off.
+- A PTC resettable fuse (250 mA) adds short-circuit protection.
+
+Because ZeroKeyUSB has no battery, unplugging the cable immediately cuts power and clears volatile RAM.
+
+---
+
+## USB descriptors
+
+| Interface | Class | Purpose |
+| --- | --- | --- |
+| Interface 0 | HID Keyboard (0x03) | Auto-types usernames and passwords |
+| Interface 1 | CDC ACM (0x02) | Serial console for backups, diagnostics, and time sync |
+
+Each interface has its own endpoint pair, allowing simultaneous keyboard and serial communication without re-enumeration.
+
+---
+
+## Security considerations
+
+- The firmware **ignores vendor-specific control requests** and only responds to standard USB descriptors.
+- HID reports are generated solely from user-confirmed actions; there is no host-triggered typing.
+- CDC commands require the device to be unlocked and, for destructive actions, a long-press confirmation.
+- USB suspend triggers an immediate lock after 30 seconds of inactivity.
+
+These safeguards ensure that plugging the key into an unknown host does not expose stored secrets.
+
+---
+
+## Troubleshooting enumeration
+
+| Symptom | Cause | Solution |
+| --- | --- | --- |
+| Device powers but not detected | CC resistors missing or incorrect | Verify 5.1 kΩ pull-downs on CC1/CC2. |
+| Enumerates as “Unknown Device” | Firmware not running or bootloader mode | Reflash via UF2 or check for double-tap reset. |
+| Serial port not appearing | CDC driver blocked | On Windows install the provided `.inf` from the firmware repo. |
+
+If USB data lines are damaged, the device can still power up, but no credentials will be typed. Inspect the connector for debris or mechanical stress.

@@ -1,0 +1,62 @@
+---
+title: "API Introduction"
+description: "Overview of the USB serial commands exposed by ZeroKeyUSB."
+---
+
+ZeroKeyUSB is primarily a hardware password manager, but it exposes a minimal serial interface for automation, backups, and diagnostics. This reference summarizes the available commands and their expected responses.
+
+---
+
+## Connection details
+
+- Interface: **USB CDC ACM** (appears as `/dev/ttyACM*` on Linux/macOS, COM port on Windows)
+- Baud rate: **115200**
+- Line endings: `\n` (LF)
+- Authentication: Device must be unlocked with the Master PIN
+
+All commands are ASCII text. Responses end with `\n` as well.
+
+---
+
+## Command list
+
+| Command | Direction | Description |
+| --- | --- | --- |
+| `PING` | Host → Device | Returns `OK`. Use to verify the connection. |
+| `STATUS` | Host → Device | Device replies with key-value pairs (firmware version, slots used, clock drift). |
+| `EXPORT` | Host → Device | Streams credentials as CSV lines until `EOF`. Requires confirmation on the device. |
+| `IMPORT` | Host → Device | Puts device in import mode; host must send CSV rows followed by an empty line. |
+| `SETTIME <epoch>` | Host → Device | Sets the Unix epoch for TOTP. Must be sent in seconds. |
+| `REQTIME` | Device → Host | Device requests the current epoch; respond with `SETTIME`. |
+| `FACTORY_RESET` | Host → Device | Arms a wipe. User must hold the center touch pad for 5 seconds to confirm. |
+| `TOUCHSTATUS` | Host → Device | Returns raw capacitive sensor values for diagnostics. |
+
+Unrecognized commands return `ERR` without altering device state.
+
+---
+
+## Session example
+
+```text
+$ screen /dev/ttyACM0 115200
+PING
+OK
+STATUS
+FW=1.2.0
+SLOTS_USED=18
+CLOCK_DRIFT=+12s
+IMPORT
+# send CSV rows here
+```
+
+Use the host CLI (`zerokeyusb-cli`) to automate these exchanges safely.
+
+---
+
+## Error handling
+
+- `ERR LOCKED` – Device is still locked; enter the Master PIN.
+- `ERR BUSY` – Another operation is in progress (e.g., export); retry later.
+- `ERR FORMAT` – Command arguments are invalid (wrong epoch format, malformed CSV).
+
+The device never sends credentials over serial unless explicitly instructed and confirmed on-device.

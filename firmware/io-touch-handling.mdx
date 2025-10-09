@@ -1,0 +1,90 @@
+---
+title: "Touch Input Handling"
+description: "How the capacitive keys are scanned, debounced, and mapped to menu navigation."
+---
+
+ZeroKeyUSB replaces mechanical buttons with **five copper touch pads** connected to a dedicated TS06 capacitive controller. The firmware polls this controller over SPI and translates gestures into navigation events.
+
+---
+
+## Hardware overview
+
+| Component | Purpose |
+| --- | --- |
+| **TS06** | Capacitive touch controller handling up to six channels |
+| **Pads** | Left, Right, Up, Down, Center (gold-plated on PCB) |
+| **SPI bus** | SERCOM1 @ 2 MHz |
+| **IRQ line** | Signals when a pad changes state |
+
+The controller runs with its own baseline calibration and reports 8-bit touch intensity values, eliminating the need for analog tuning in firmware.
+
+---
+
+## Polling cycle
+
+1. The TS06 asserts the **IRQ** pin when a pad crosses the sensitivity threshold.
+2. The SAMD21 wakes (if sleeping) and performs an SPI transaction to read the status register.
+3. A 5-sample moving average filters noise and prevents accidental triggers.
+4. The debounced result is converted into one of the logical actions: `LEFT`, `RIGHT`, `UP`, `DOWN`, `CENTER`, or `LONG_PRESS`.
+
+The loop runs every 8 ms at most, balancing responsiveness with low power consumption.
+
+---
+
+## Gesture mapping
+
+| Gesture | Trigger | Action |
+| --- | --- | --- |
+| Tap left/right | Single press | Navigate between menu screens |
+| Tap up/down | Single press | Change character or scroll items |
+| Tap center | Single press | Confirm selection / open item |
+| Hold center | >700 ms | Approve sensitive actions (import, erase, backup) |
+| Hold right | >700 ms | Jump to next credential slot |
+| Hold left | >700 ms | Return to previous menu level |
+
+Long presses require the pad to remain above the threshold for the duration; releasing early cancels the action.
+
+---
+
+## Debounce algorithm
+
+```c
+if (raw_state != stable_state) {
+  counter++;
+  if (counter > 3) {
+    stable_state = raw_state;
+    emit_event(stable_state);
+    counter = 0;
+  }
+} else {
+  counter = 0;
+}
+```
+
+- The counter increments every poll when the raw state differs from the last stable state.
+- After four consecutive mismatches, the change is accepted.
+- Returning to the neutral state follows the same logic, avoiding rapid toggling.
+
+This simple approach handles electrical noise and finger gliding without adding latency.
+
+---
+
+## Calibration and drift
+
+- On boot, the firmware issues `CALIBRATE_ALL` to the TS06 to set baseline capacitance values.
+- If ambient conditions change (humidity, temperature), a background task recalibrates idle pads after 5 seconds of no touch activity.
+- The controller tracks per-pad offsets, so neighboring touches do not interfere with each other.
+
+<Note>
+No calibration data is stored in EEPROM; the TS06 handles persistence internally.
+</Note>
+
+---
+
+## Error handling
+
+- SPI timeouts fall back to a safe state and display `TOUCH ERR` on the OLED.
+- If the controller does not respond after three retries, the firmware disables menu navigation and instructs the user to reconnect power.
+- Diagnostic information is available through the serial `TOUCHSTATUS` command.
+
+The result is a responsive, silent input system that matches the compact form factor of ZeroKeyUSB.
