@@ -1,0 +1,94 @@
+---
+title: "EEPROM Management"
+description: "Page layout, wear leveling, and integrity checks for the M24C64-W credential storage."
+---
+
+ZeroKeyUSB stores every secret inside an external **ST M24C64-W** EEPROM. The firmware carefully manages reads and writes to maximize lifespan while keeping data encrypted at rest.
+
+---
+
+## Memory map
+
+| Address range | Purpose |
+| --- | --- |
+| `0x0000 – 0x0001` | Firmware version + schema revision |
+| `0x0002` | Failed PIN attempt counter |
+| `0x0003 – 0x000A` | Signature block (AES-128 encrypted) |
+| `0x0010 – 0x001F` | Initialization Vector (IV) |
+| `0x0020 – 0x00FF` | Reserved for future metadata |
+| `0x0100 – 0x7FFF` | Credential slots (64 × 4 × 32 bytes) |
+
+Each credential consumes **three mandatory pages** (site, username, password) and an optional fourth page for the TOTP secret.
+
+---
+
+## Slot structure
+
+```
+struct Slot {
+  uint8_t status;      // 0x00 empty, 0xAA filled
+  uint8_t reserved[3]; // future flags
+  uint8_t site[32];
+  uint8_t user[32];
+  uint8_t password[32];
+  uint8_t totp[32];    // optional Base32 secret
+};
+```
+
+- The `status` byte ensures the firmware knows whether the slot contains valid encrypted data.
+- All fields are stored **AES-128 CBC encrypted** before being written.
+- Empty pages are filled with random data to avoid leaking usage patterns.
+
+---
+
+## Write sequence
+
+1. Encrypt the field using the current Master PIN as the key and the stored IV.
+2. Write 32-byte chunks via I²C with acknowledge checking.
+3. After each write, read back the page and compare with the encrypted buffer.
+4. Update the slot status only after all pages pass verification.
+
+If any step fails, the slot reverts to its previous state and the error is reported over the serial console.
+
+---
+
+## Wear management
+
+- The M24C64-W supports **1 million write cycles per page**.
+- Firmware tracks the number of rewrites in RAM and spreads repeated edits across backup slots when possible.
+- Bulk imports rewrite slots sequentially to avoid thrashing the same page repeatedly.
+- Factory reset issues an `ERASE` command that overwrites every page with pseudorandom data, refreshing the wear level evenly.
+
+Because credentials are usually static, expected lifespan exceeds decades even with daily updates.
+
+---
+
+## Integrity checks
+
+- A **CRC-16** is appended to each encrypted page before writing.
+- On read, the firmware decrypts, verifies the CRC, and only then exposes data to higher layers.
+- If CRC fails, the slot is marked corrupt, hidden from the UI, and a warning appears in the serial diagnostics.
+
+Users can still attempt to restore a corrupted slot from backup; the firmware refuses to auto-type credentials with failed CRCs.
+
+---
+
+## Safe read caching
+
+To keep the UI responsive, decrypted data for the current slot is cached in RAM for the duration of the session. Leaving the menu or locking the device clears the buffer immediately.
+
+<Note>
+No decrypted credential ever touches the serial channel or persistent memory without explicit user approval.
+</Note>
+
+---
+
+## Troubleshooting tips
+
+| Symptom | Suggestion |
+| --- | --- |
+| Slot disappears after import | Check CSV for invalid Base32 secrets; the firmware rejects them and keeps the slot empty. |
+| Serial log shows `EEPROM NACK` | Inspect I²C solder joints or ensure the pull-ups are present. |
+| CRC failure reported | Run a backup/restore cycle to rewrite the affected slot with fresh data. |
+
+Proper EEPROM management is essential to maintaining ZeroKeyUSB’s security guarantees while keeping data accessible when needed.

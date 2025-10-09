@@ -1,0 +1,65 @@
+---
+title: "PIN Verification"
+description: "Unlock flow, retry delays, and secure handling of the Master PIN."
+---
+
+ZeroKeyUSB relies on a single Master PIN to authenticate the user and derive the encryption key. The verification process is intentionally strict to block brute-force attempts while keeping the device usable day-to-day.
+
+---
+
+## Unlock sequence
+
+1. User enters a PIN using the capacitive touch pads.
+2. Firmware normalizes the digits (ensuring only `0–9` and optional `ENTER`).
+3. The PIN is hashed with SHA-256 and truncated to 16 bytes.
+4. Using this key, the firmware decrypts the **signature block** stored at EEPROM address `0x0003`.
+5. If the decrypted bytes match the known pattern `"ZKUSB\0\0\0\0"`, access is granted.
+
+If the comparison fails, the attempt counter increments and the device enforces a delay before the next try.
+
+---
+
+## Adaptive delays
+
+| Failed attempts | Lockout time |
+| --- | --- |
+| 1 | 5 seconds |
+| 2 | 10 seconds |
+| 3 | 20 seconds |
+| 4 | 40 seconds |
+| 5+ | Doubles each time up to 2560 seconds |
+
+- The counter is stored in EEPROM at `0x0002` so power cycling does not reset it.
+- Successful unlock resets the counter to zero.
+- During the delay the OLED shows a countdown and the keyboard interface remains idle.
+
+---
+
+## Secure input handling
+
+- Digits are buffered in a 16-byte array within SRAM and cleared after verification.
+- Touch events are ignored during lockout to prevent queue overflow.
+- The serial interface cannot send PIN digits; only physical touch input is accepted.
+
+This ensures that malware on the host computer cannot brute-force the PIN without user awareness.
+
+---
+
+## Changing the PIN
+
+1. Unlock the device and open **Menu → Security → Change PIN**.
+2. Enter the current PIN for confirmation.
+3. Enter and confirm the new PIN.
+4. The firmware re-encrypts all credential pages with the new key and updates the signature block.
+
+If the process is interrupted, the firmware rolls back to the previous key to avoid data loss.
+
+---
+
+## Forgotten PIN
+
+ZeroKeyUSB has no recovery mechanism. The only option is to perform a **factory reset**, which wipes all EEPROM contents and clears the PIN signature. You can then set a new PIN, but previously stored credentials are unrecoverable unless you have a backup.
+
+<Alert type="warning">
+Choose a PIN you can remember but others cannot guess, and keep an encrypted backup of your credentials in case of emergencies.
+</Alert>

@@ -1,0 +1,86 @@
+---
+title: "MCU: Microchip SAMD21"
+description: "Microcontroller responsibilities, clock setup, and peripheral usage inside ZeroKeyUSB."
+---
+
+The **Microchip ATSAMD21G18** is the core of ZeroKeyUSB. It combines a 32-bit ARM Cortex-M0+ CPU, built-in USB controller, and enough peripherals to coordinate the display, touch inputs, and external EEPROM.
+
+---
+
+## Key specifications
+
+| Feature | Value |
+| --- | --- |
+| CPU | ARM Cortex-M0+ @ 48 MHz |
+| Flash | 256 KB (firmware occupies ~60 KB) |
+| SRAM | 32 KB |
+| USB | Full-speed device with HID + CDC composite support |
+| GPIO | 38 general-purpose pins |
+| Timers | 9 (TC/TCC) used for PWM, debouncing, and TOTP timing |
+| ADC | 12-bit, used for IV entropy sampling |
+
+The firmware runs from internal flash and executes entirely from zero-wait-state memory, keeping latency low even while updating the OLED display.
+
+---
+
+## Clock configuration
+
+1. Internal **8 MHz oscillator** feeds the Digital Frequency Locked Loop (DFLL).
+2. DFLL multiplies to **48 MHz** for the CPU and synchronous peripherals.
+3. The **generic clock controller** divides the 48 MHz clock for:
+   - 1 MHz I²C (SERCOM3) used by EEPROM and OLED
+   - 2 MHz SERCOM1 for the touch controller SPI
+   - 32 kHz reference for millisecond timing (via `SysTick`)
+
+This configuration balances performance with low noise for the touch sensor.
+
+---
+
+## Peripheral mapping
+
+| Peripheral | SERCOM | Function |
+| --- | --- | --- |
+| SERCOM0 | USART | CDC serial channel (TX/RX on USB pads) |
+| SERCOM1 | SPI | Touch controller (TS06) |
+| SERCOM2 | I²C | Reserved/debug headers |
+| SERCOM3 | I²C | EEPROM (M24C64-W) + OLED display (SSD1306) |
+| SERCOM4 | Unused | Available for future expansions |
+| SERCOM5 | USB | Native USB full-speed interface |
+
+The `PORT` multiplexer assigns each SERCOM to specific pins; see the KiCad design for exact pad numbers.
+
+---
+
+## Memory layout
+
+- **Bootloader (8 KB)** – UF2-compatible loader for factory flashing and community updates.
+- **Application (240 KB max)** – ZeroKeyUSB firmware; currently uses <30% of available flash.
+- **EEPROM emulation** is unused; all persistent data lives in the external M24C64-W.
+- **SRAM buffers**:
+  - 512 bytes for OLED frame buffer
+  - 128 bytes for USB HID reports
+  - 96 bytes scratch space for AES blocks
+
+The linker script reserves stack space for nested menu rendering and cryptographic routines.
+
+---
+
+## Power and sleep
+
+- The MCU runs in **active mode** while connected; consumption stays below 25 mA for the whole board.
+- After 60 seconds of inactivity the firmware dims the OLED and places the CPU into **Standby** while keeping USB active.
+- Touch or USB activity wakes the chip in under 3 ms.
+
+This behavior ensures responsive interaction without exceeding USB current limits.
+
+---
+
+## Firmware responsibilities
+
+- Authenticating the Master PIN using AES routines.
+- Orchestrating the menu, display, and touch interactions.
+- Managing EEPROM read/write operations with wear-level tracking.
+- Generating USB HID reports and processing CDC commands.
+- Calculating TOTP codes using integer arithmetic (no floating point required).
+
+The SAMD21 provides enough headroom to add features such as multiple keyboard layouts or additional security checks without hardware changes.

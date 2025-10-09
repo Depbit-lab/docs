@@ -1,0 +1,56 @@
+---
+title: "AES-128 Encryption"
+description: "Implementation details of the cipher that protects every credential stored in ZeroKeyUSB."
+---
+
+ZeroKeyUSB encrypts each credential block using **AES-128 in CBC mode**. The encryption key is derived directly from the Master PIN, ensuring that only the owner can decrypt stored data.
+
+---
+
+## Key material
+
+- The Master PIN (4–16 digits) is zero-padded or truncated to 16 bytes.
+- Before use, it passes through a single round of **SHA-256**; the first 16 bytes become the AES key.
+- The derived key never leaves SRAM and is cleared immediately after authentication.
+
+This lightweight derivation protects against weak numeric PINs while keeping unlocking quick on the Cortex-M0+ core.
+
+---
+
+## CBC chaining
+
+1. The firmware loads the persistent **Initialization Vector (IV)** from EEPROM.
+2. Each 32-byte field (site, username, password, TOTP) is split into two 16-byte blocks.
+3. Blocks are XORed with the previous ciphertext (or IV for the first block) and encrypted.
+4. The resulting ciphertext is written back to EEPROM with a CRC-16 checksum.
+
+When decrypting, the process runs in reverse: decrypt, XOR with previous ciphertext, and verify the CRC before exposing plaintext.
+
+---
+
+## AES implementation
+
+- Based on the open-source **tiny-AES-c** library, optimized for minimal RAM usage.
+- Uses precomputed S-box tables stored in flash.
+- Encrypt/decrypt routines are constant-time with respect to plaintext values.
+- All 16-byte buffers are allocated on the stack to reduce persistent traces in memory.
+
+The total encryption time for a full credential slot is under 2 ms.
+
+---
+
+## Handling padding
+
+- Plaintext shorter than 32 bytes is padded with null bytes prior to encryption.
+- During decryption, trailing nulls are stripped but preserved internally so auto-typing retains the original length.
+- The firmware rejects UTF-8 sequences that would overflow the 32-byte limit to avoid partial block writes.
+
+---
+
+## Security considerations
+
+- Because the Master PIN is the key, changing the PIN re-encrypts every slot with the new key.
+- A factory reset erases the IV and all ciphertext, preventing offline brute-force attempts on desoldered EEPROMs.
+- There is no key escrow or recovery mechanism; forgetting the PIN renders stored data unrecoverable.
+
+Together with physical tamper resistance, AES-128 CBC provides strong protection even if the EEPROM is copied or probed.

@@ -1,0 +1,53 @@
+---
+title: "Epoch Synchronization"
+description: "Keep ZeroKeyUSB’s internal clock aligned so TOTP codes stay valid."
+---
+
+ZeroKeyUSB does not contain a real-time clock. Instead, it keeps track of time using the SAMD21 millisecond counter plus a stored Unix epoch. To maintain accuracy, the device occasionally needs the host to send the current time.
+
+---
+
+## When synchronization is required
+
+- First boot or after a factory reset
+- When the OLED displays `REQTIME`
+- If login services report “invalid code” despite entering it immediately
+- After long periods without power (several weeks)
+
+The firmware triggers a sync request once drift exceeds ±90 seconds.
+
+---
+
+## Sync workflow
+
+1. Unlock ZeroKeyUSB.
+2. Connect to the serial interface via the web manager or CLI.
+3. The device sends `REQTIME` to signal it needs the current epoch.
+4. The host responds with `SETTIME <epoch>`, for example `SETTIME 1706227200`.
+5. ZeroKeyUSB stores the value in EEPROM (little-endian 64-bit) and resets its internal counters.
+
+The entire exchange is local; no network connection is required.
+
+---
+
+## Checking drift manually
+
+Run the CLI status command:
+
+```bash
+zerokeyusb-cli status
+```
+
+Look for a line like `Clock drift: +18s`. If the value approaches ±60s, perform a new synchronization.
+
+---
+
+## Troubleshooting
+
+| Symptom | Fix |
+| --- | --- |
+| `REQTIME` persists after sending `SETTIME` | Ensure the epoch is in seconds (not milliseconds). |
+| Codes always off by 30 s | Host clock likely misconfigured; verify OS time sync. |
+| CLI cannot open port | Close other serial programs (e.g., Arduino IDE) that might be connected. |
+
+Proper time alignment guarantees your TOTP codes match the server’s expectations.

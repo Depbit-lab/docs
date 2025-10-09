@@ -1,0 +1,59 @@
+---
+title: "Initialization Vector Generation"
+description: "How ZeroKeyUSB creates and protects the IV used for AES-128 CBC encryption."
+---
+
+The Initialization Vector (IV) ensures that identical plaintext blocks encrypt to different ciphertext. ZeroKeyUSB generates the IV once, stores it securely, and refreshes it only when necessary.
+
+---
+
+## First boot procedure
+
+1. On first startup the firmware checks EEPROM address `0x0010` for a valid IV flag.
+2. If empty, it samples analog noise from an unconnected ADC channel (`ADC0/AIN7`).
+3. 128 bits of entropy are collected by oversampling and XOR folding.
+4. The resulting IV is written to EEPROM along with a CRC-16 and a `0xA5` guard byte.
+
+The process runs entirely on-device and does not rely on host input.
+
+---
+
+## Validation on unlock
+
+- During every unlock, the firmware reads the IV and verifies the CRC.
+- If the CRC fails, the device refuses to decrypt credentials and displays `IV ERROR`.
+- Users are prompted to regenerate the IV, which also requires re-encrypting every slot with the new value.
+
+---
+
+## Regeneration logic
+
+The IV is regenerated automatically when:
+
+- The CRC check fails (corruption or tampering).
+- A factory reset is executed.
+- The user selects **Menu → Security → Refresh IV**.
+
+Regeneration follows the same noise-sampling routine, ensuring a fresh 128-bit value each time. After regeneration all credentials are re-encrypted before the device returns to the main menu.
+
+---
+
+## Why a single IV?
+
+- Using one IV per device keeps the implementation simple and auditable.
+- Because AES runs in CBC mode, changing the IV requires re-encrypting the entire EEPROM to maintain consistency.
+- The IV never leaves the device, so ciphertext from one ZeroKeyUSB cannot be decrypted with another even if the PIN matches.
+
+<Note>
+While per-record IVs are common, the threat model here prioritizes transparency and ease of verification. Tampering with the single IV is detectable and recoverable through regeneration.
+</Note>
+
+---
+
+## Tamper detection
+
+- IV storage includes a **guard byte** and **CRC-16** to detect modification.
+- If an attacker tries to flip bits, the next unlock attempt fails and forces regeneration.
+- The old IV is overwritten with random data before the new value is written, preventing rollback attacks.
+
+The IV handling strategy preserves confidentiality while giving users control over reinitialization when required.

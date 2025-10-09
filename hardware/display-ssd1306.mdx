@@ -1,0 +1,70 @@
+---
+title: "Display: SSD1306 OLED"
+description: "128×32 monochrome display wiring, power budget, and firmware usage."
+---
+
+ZeroKeyUSB uses a **0.91" SSD1306-based OLED module** to present menus, credentials, and status icons. The display is bright, low-power, and readable from multiple angles — ideal for a quick glance during logins.
+
+---
+
+## Electrical characteristics
+
+| Parameter | Value |
+| --- | --- |
+| Resolution | 128 × 32 pixels |
+| Interface | I²C (address `0x3C`) |
+| Supply voltage | 3.3 V |
+| Typical current | 10–12 mA at full brightness |
+| Controller | Solomon Systech SSD1306 |
+
+The module connects directly to the SAMD21’s SERCOM3 I²C bus, shared with the external EEPROM. Pull-up resistors (4.7 kΩ) are located on the PCB, so the breakout resistors should be disabled when assembling.
+
+---
+
+## Pin assignments
+
+| OLED pin | Signal | Notes |
+| --- | --- | --- |
+| VCC | 3V3 | Powered from the MCU regulator |
+| GND | GND | Common ground |
+| SCL | PA23 | Shared I²C clock |
+| SDA | PA22 | Shared I²C data |
+| RES | PA14 | Controlled by firmware during init |
+| DC | Tied low | Command/data handled automatically in I²C mode |
+| CS | Tied low | Not used in I²C mode |
+
+The firmware toggles the **RES** line during startup to ensure a clean boot sequence even if power is unstable.
+
+---
+
+## Frame buffer strategy
+
+- The SSD1306 expects data in **pages of 8 vertical pixels**.
+- Firmware maintains a 512-byte buffer in SRAM (`128 × 32 / 8`).
+- Updates use **partial writes** to minimize I²C traffic when only a few characters change.
+- A simple double-buffer diff tracks dirty regions so the screen refresh stays under 5 ms.
+
+Animations such as smooth scrolling for long passwords rely on timer interrupts that shift the buffer between refreshes.
+
+---
+
+## Brightness control
+
+- Default contrast value: `0x7F` (50%).
+- Menu option allows dimming down to `0x20` for dark environments.
+- After 60 seconds of inactivity the firmware sends `DISPLAY OFF` while keeping data in RAM.
+- Any touch input or USB activity turns the screen back on instantly.
+
+This approach balances legibility and OLED lifespan.
+
+---
+
+## Troubleshooting
+
+| Symptom | Possible cause | Fix |
+| --- | --- | --- |
+| No image, backlight off | RES pin held low | Check solder joint or ensure the boot logo finished. |
+| Display flashes or shows noise | I²C conflict with EEPROM | Inspect pull-up resistors and cable length. |
+| Ghosting / burn-in | Static content at max brightness | Lower contrast or enable auto-dim in settings. |
+
+If the OLED ever needs replacement, any SSD1306 I²C module with the same pin order can be swapped in without firmware changes.

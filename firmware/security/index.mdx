@@ -5,7 +5,7 @@ description: "How ZeroKeyUSB protects your credentials through encryption, isola
 
 ## Offline by design
 
-ZeroKeyUSB does not rely on the Internet, cloud storage, or companion apps.  
+ZeroKeyUSB does not rely on the Internet, cloud storage, or companion apps.
 Everything — from encryption to key handling — happens **inside the device**, powered directly through USB.
 
 Your passwords **never leave the hardware** and **cannot be accessed remotely**, even by the manufacturer.
@@ -14,13 +14,14 @@ Your passwords **never leave the hardware** and **cannot be accessed remotely**,
 
 ## Encryption architecture
 
-All sensitive data is stored in the external **EEPROM M24C64-WMN6TP**, encrypted using **AES-128 CBC (Cipher Block Chaining)**.  
-The encryption key is taken directly from your **Master PIN**, which is never stored or transmitted in plain text.
+All sensitive data is stored in the external **EEPROM M24C64-WMN6TP**, encrypted using **AES-128 CBC (Cipher Block Chaining)**.
+
+The encryption key is derived from your **Master PIN**: the digits are hashed with SHA-256 and the first 16 bytes form the AES key. The original PIN is never stored or transmitted in plain text.
 
 | Element | Description |
 |----------|-------------|
 | **Encryption algorithm** | AES-128 in CBC mode (industry-standard symmetric cipher). |
-| **Key source** | Directly uses the Master PIN as the 128-bit key. |
+| **Key source** | Master PIN → SHA-256 → 128-bit AES key. |
 | **IV (Initialization Vector)** | Generated from analog noise on first startup and stored securely in EEPROM. |
 | **Data blocks** | Each credential uses three 32-byte encrypted pages (site, username, password). |
 | **Verification** | Each write is confirmed via I²C acknowledgment to ensure completion. |
@@ -31,13 +32,13 @@ If the EEPROM were removed from the board, its contents would appear as **random
 
 ## The Master PIN
 
-Your PIN acts as your personal encryption key.  
+Your PIN acts as your personal encryption key.
 It is never transmitted, stored in plain text, or shared with any external system.
 
 When you enter your PIN:
-1. ZeroKeyUSB uses it directly as the AES-128 key.  
-2. This key decrypts an 8-byte **signature block** stored in EEPROM.  
-3. If the decrypted result matches the expected pattern, access is granted.  
+1. ZeroKeyUSB derives the AES-128 key.
+2. This key decrypts an 8-byte **signature block** stored in EEPROM.
+3. If the decrypted result matches the expected pattern, access is granted.
 4. Otherwise, the failed-attempt counter increments and the device enforces a delay before retry.
 
 ---
@@ -61,8 +62,8 @@ This mechanism prevents brute-force attempts and persists even after unplugging 
 
 ## Secure Initialization Vector (IV)
 
-Every device generates a unique **Initialization Vector** on first startup.  
-The IV is created using **analog noise** read from a floating pin on the SAMD21 and saved in the EEPROM.  
+Every device generates a unique **Initialization Vector** on first startup.
+The IV is created using **analog noise** read from a floating pin on the SAMD21 and saved in the EEPROM.
 If the IV becomes corrupted or missing, it is regenerated automatically with fresh entropy.
 
 A single IV per device is used for all AES operations, ensuring every encryption chain is unique to that specific unit.
@@ -73,10 +74,10 @@ A single IV per device is used for all AES operations, ensuring every encryption
 
 Each credential is divided into **independent encrypted pages** to minimize correlation:
 
-- Page 1 → Site or domain  
-- Page 2 → Username  
-- Page 3 → Password  
-- Page 4 (optional) → TOTP secret  
+- Page 1 → Site or domain
+- Page 2 → Username
+- Page 3 → Password
+- Page 4 (optional) → TOTP secret
 
 This segmented structure isolates corruption, avoids recognizable patterns, and extends memory endurance.
 
@@ -84,27 +85,42 @@ This segmented structure isolates corruption, avoids recognizable patterns, and 
 
 ## Tamper protection
 
-- The entire PCB is **encapsulated in epoxy resin**, making component access virtually impossible without destroying the device.  
-- **No wireless interfaces** (Wi-Fi, Bluetooth, NFC) are present.  
-- The firmware is **static** — flashed at the factory and cannot be updated remotely.  
+- The entire PCB is **encapsulated in epoxy resin**, making component access virtually impossible without destroying the device.
+
+- **No wireless interfaces** (Wi-Fi, Bluetooth, NFC) are present.
+- The firmware is **static** — flashed at the factory and cannot be updated remotely.
 - All sensitive operations occur only in **temporary RAM buffers**, which are cleared immediately after use.
 
 ---
 
 ## Transparency, not dependence
 
-ZeroKeyUSB’s firmware is fully open-source and available for public **audit and verification**.  
+ZeroKeyUSB’s firmware is fully open-source and available for public **audit and verification**.
 Anyone can review how encryption, IV handling, and access control are implemented to confirm that:
 
-- There are **no backdoors or remote commands**.  
-- All cryptographic processes occur **locally and deterministically**.  
+- There are **no backdoors or remote commands**.
+- All cryptographic processes occur **locally and deterministically**.
 - Security depends on design, not trust.
 
 ZeroKeyUSB intentionally avoids OTA or wireless updates — physical access is required for reflashing if ever needed.
 
 ---
 
+## Dive deeper
+
+<CardGroup cols={3}>
+  <Card title="AES-128 Encryption" icon="lock" href="/firmware/security/aes-128-encryption">
+    Learn how the Master PIN turns into an AES key and how CBC mode protects each credential page.
+  </Card>
+  <Card title="PIN Verification" icon="shield" href="/firmware/security/pin-verification">
+    Explore the unlock flow, adaptive delays, and how retries are enforced in hardware.
+  </Card>
+  <Card title="IV Generation" icon="dice" href="/firmware/security/iv-generation">
+    Understand how entropy is gathered and how the IV is validated and regenerated.
+  </Card>
+</CardGroup>
+
 <Note>
-ZeroKeyUSB’s encryption follows the same core principles found in certified hardware tokens and wallets —  
+ZeroKeyUSB’s encryption follows the same core principles found in certified hardware tokens and wallets —
 with a focus on simplicity, transparency, and complete offline operation.
 </Note>

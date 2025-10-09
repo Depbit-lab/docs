@@ -1,0 +1,63 @@
+---
+title: "Web Time Sync Tool"
+description: "Use the browser-based helper to send accurate Unix time to ZeroKeyUSB."
+---
+
+The ZeroKeyUSB firmware repository includes a lightweight web application that runs locally in your browser. It connects to the device over WebUSB and pushes the current epoch so TOTP codes stay in sync.
+
+---
+
+## Requirements
+
+- Chromium-based browser (Chrome, Edge, Brave) with WebUSB enabled
+- ZeroKeyUSB unlocked and connected via USB-C
+- Local copy of the **`tools/web-time-sync`** directory served via `npm run dev`
+
+No Internet access is necessary once the page is loaded.
+
+---
+
+## Launching the tool
+
+```bash
+cd tools/web-time-sync
+npm install
+npm run dev
+```
+
+Open the printed local URL (typically `http://localhost:5173`) in your browser. You should see the ZeroKeyUSB logo and a “Connect” button.
+
+---
+
+## Sending the time
+
+1. Click **Connect** and select your ZeroKeyUSB from the device list (`ZeroKeyUSB CDC`).
+2. The page displays the current Unix epoch and a countdown to the next 30-second boundary.
+3. Press **Sync now** when the device requests time (shows `REQTIME`).
+4. The tool sends `SETTIME <epoch>` automatically and confirms success with a toast notification.
+
+If the device was already in sync, it responds with `OK` and no changes are made.
+
+---
+
+## Safety features
+
+- The tool only communicates with USB devices whose vendor/product IDs match ZeroKeyUSB.
+- All commands are visible in the on-screen console for auditability.
+- No data leaves the browser tab; telemetry and analytics are disabled.
+
+<Alert>
+Close the tab when finished. Leaving WebUSB connections open can prevent other applications from accessing the serial port.
+</Alert>
+
+---
+
+## Troubleshooting
+
+| Issue | Resolution |
+| --- | --- |
+| Browser cannot access USB | Make sure you are using a Chromium browser and have granted device permissions. |
+| `Failed to send epoch` | The device might be locked; unlock it and try again. |
+| Tool closes unexpectedly | Check the terminal running `npm run dev` for errors and restart the dev server. |
+
+The web time sync tool offers a user-friendly way to keep your hardware authenticator aligned without installing heavyweight software.
