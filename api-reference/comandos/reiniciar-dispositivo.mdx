@@ -1,0 +1,32 @@
+---
+title: "Reiniciar dispositivo"
+description: "Ejecuta un reinicio seguro de ZeroKeyUSB"
+---
+
+```bash
+zerokey cli device reboot --device=<serie> --reason="maintenance"
+```
+
+## Uso
+
+- Asegúrate de que el dispositivo no se encuentre en medio de una autenticación.
+- El reinicio tarda aproximadamente 5 segundos y mantiene las políticas actuales.
+
+## Respuesta esperada
+
+```json
+{
+  "device": "ZK-2045",
+  "status": "rebooting",
+  "initiatedBy": "admin@empresa.com",
+  "timestamp": "2024-03-21T10:22:00Z"
+}
+```
+
+## Errores
+
+| Código | Mensaje | Causa |
+| --- | --- | --- |
+| 409 | Operation in progress | El dispositivo ejecuta otra acción (por ejemplo, actualización de firmware). |
+| 401 | Unauthorized | Token inválido o permisos insuficientes. |
+| 408 | Timeout | El agente no respondió en el tiempo esperado.

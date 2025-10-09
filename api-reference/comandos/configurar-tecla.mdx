@@ -1,0 +1,45 @@
+---
+title: "Configurar políticas del dispositivo"
+description: "Actualiza PIN, modo y parámetros de seguridad de un ZeroKeyUSB"
+---
+
+```bash
+zerokey cli device configure \
+  --device=<serie> \
+  --mode=<fido2|otp|signature|physical> \
+  --pin-policy=minLength:6,maxAttempts:5 \
+  --presence-required
+```
+
+## Parámetros clave
+
+- `--device`: Identificador único del hardware.
+- `--mode`: Selecciona el perfil activo.
+- `--pin-policy`: Define reglas de PIN usando pares clave:valor.
+- `--presence-required`: Obliga a interacción física del usuario.
+
+## Ejemplo
+
+```bash
+zerokey cli device configure \
+  --device=ZK-2088 \
+  --mode=fido2 \
+  --pin-policy=minLength:8,history:5 \
+  --presence-required \
+  --biometrics=enabled
+```
+
+## Respuesta
+
+```json
+{
+  "device": "ZK-2088",
+  "mode": "fido2",
+  "pinPolicy": {
+    "minLength": 8,
+    "history": 5
+  },
+  "presenceRequired": true,
+  "biometrics": "enabled"
+}
+```

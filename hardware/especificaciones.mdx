@@ -1,0 +1,53 @@
+---
+title: "Especificaciones técnicas"
+description: "Características de hardware y certificaciones del ZeroKeyUSB"
+---
+
+## Tabla de especificaciones
+
+| Parámetro | Detalle |
+| --- | --- |
+| Procesador seguro | Microcontrolador ARM Cortex-M33 con TrustZone |
+| Criptografía | AES-256, SHA-512, ECC P-256, TRNG certificado |
+| Almacenamiento | 128 KB flash segura, 32 KB OTP |
+| Conectividad | USB 2.0 Tipo A (incluye adaptador USB-C) |
+| Temperatura operativa | 0°C a 45°C |
+| Resistencia física | IP54, carcasa sellada con resina epóxica |
+| Certificaciones | FIDO2 L2, CC EAL5+, NIST SP800-63-3 |
+
+## Indicadores LED
+
+<Alert title="Interpretación rápida">
+  El comportamiento del LED ayuda a diagnosticar el estado del dispositivo sin necesidad de software adicional.
+</Alert>
+
+| Estado | Patrón | Acción recomendada |
+| --- | --- | --- |
+| Inicialización | Verde intermitente | Espera la notificación de dispositivo listo. |
+| Autenticación solicitada | Azul fijo | Solicita interacción del usuario (PIN o toque capacitivo). |
+| Error de PIN | Rojo intermitente rápido | Verifica el PIN y los intentos restantes. |
+| Firmware en actualización | Amarillo pulsante | No desconectes la llave hasta que el LED apague. |
+
+## Seguridad física
+
+- Carcasa resistente a manipulaciones con detección de apertura.
+- Sensor de temperatura que bloquea el dispositivo ante variaciones bruscas.
+- Autodestrucción de claves maestras tras 10 intentos fallidos consecutivos.
+- Soporte para cadena de custodia mediante etiquetas NFC opcionales.
+
+## Accesorios incluidos
+
+<CardGroup cols={2}>
+  <Card title="Estuche de transporte">
+    Protección rígida para transporte de hasta 5 llaves simultáneas.
+  </Card>
+  <Card title="Adaptador USB-C">
+    Compatible con puertos Thunderbolt y USB4.
+  </Card>
+  <Card title="Tarjeta de recuperación">
+    Espacio para anotar códigos de respaldo fuera de línea.
+  </Card>
+  <Card title="Guía de bienvenida">
+    Instrucciones rápidas para usuarios finales.
+  </Card>
+</CardGroup>

@@ -1,0 +1,65 @@
+---
+title: "Configuración del software"
+description: "Prepara el entorno ZeroKey para gestionar tus llaves USB"
+---
+
+## Componentes del software
+
+| Componente | Función principal |
+| --- | --- |
+| ZeroKey Agent | Servicio residente que comunica la llave con el sistema operativo. |
+| ZeroKey Console | Aplicación de escritorio para registrar, monitorear y administrar llaves. |
+| ZeroKey CLI | Herramienta de línea de comandos para automatización y scripts DevOps. |
+| Controladores USB | Paquetes específicos por sistema operativo para exponer el dispositivo como token de seguridad. |
+
+## Instalación del agente
+
+<Steps>
+  <Step title="Descarga">
+    Obtén la versión más reciente del portal de clientes. Selecciona el paquete según tu sistema operativo.
+  </Step>
+  <Step title="Instalación silenciosa">
+    Ejecuta `zerokey-agent-setup.exe /quiet /norestart` en Windows o `sudo zerokey-agent.pkg --silent` en macOS para despliegues masivos.
+  </Step>
+  <Step title="Verificación">
+    Ejecuta `zerokey status` y confirma que el servicio responde con *"Agent running"*.
+  </Step>
+</Steps>
+
+## Registro de dispositivos
+
+1. Abre **ZeroKey Console** e inicia sesión con tu cuenta de administrador.
+2. Navega a **Dispositivos → Nuevo registro**.
+3. Inserta la llave y espera a que aparezca en el listado.
+4. Asigna el dispositivo a un usuario y define políticas:
+   - Requerir PIN y longitud mínima.
+   - Habilitar autenticación biométrica opcional.
+   - Configurar límites de intentos e intervalo de bloqueo.
+5. Guarda los cambios y sincroniza con tu proveedor de identidad.
+
+## Integración con directorios corporativos
+
+<AccordionGroup>
+  <Accordion title="Azure Active Directory">
+    - Crea una aplicación empresarial y habilita FIDO2 como método permitido.
+    - Asocia el IdP en **Configuración → Integraciones** dentro de ZeroKey Console.
+    - Usa `zerokey cli aad sync` para importar usuarios y grupos.
+  </Accordion>
+  <Accordion title="Okta">
+    - Activa WebAuthn como factor adicional y registra ZeroKeyUSB como proveedor.
+    - Configura SCIM para sincronización automática de usuarios.
+    - Programa la tarea `zerokey cli okta push-policies` para aplicar políticas de acceso.
+  </Accordion>
+  <Accordion title="Google Workspace">
+    - Habilita claves de seguridad en la Consola de administración.
+    - Crea un perfil de acceso condicional y asigna las unidades organizativas.
+    - Ejecuta `zerokey cli google enroll --org=<unidad>` para registrar las llaves asociadas.
+  </Accordion>
+</AccordionGroup>
+
+## Buenas prácticas
+
+- Realiza respaldos cifrados de la base de datos de ZeroKey Console cada 24 horas.
+- Habilita la auditoría avanzada para registrar cambios críticos.
+- Limita el acceso administrativo mediante grupos dedicados y MFA adicional.
+- Define procedimientos de revocación y reemplazo antes de iniciar el despliegue masivo.
