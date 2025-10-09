@@ -6,10 +6,10 @@ description: "How ZeroKeyUSB stores encrypted credentials and why its memory arc
 ## Secure memory, not just storage
 
 ZeroKeyUSB uses an industrial-grade **ST M24C64-WMN6TP EEPROM**, a 64-kilobit non-volatile memory chip (8 KB total).  
-It was selected not for size, but for **reliability and data integrity** — critical in a device that may hold your most important credentials for years.
+It was selected not for capacity, but for **reliability and long-term data integrity** — critical for a device expected to safeguard your credentials for years.
 
-All information inside this chip is **encrypted before being written**, and **verified after every operation**.  
-Even if removed from the board, the memory contains no usable information — only encrypted binary data.
+All information inside this chip is **encrypted by the MCU before being written**.  
+Even if the memory were physically removed, it would reveal only **ciphertext blocks** — never readable data.
 
 ---
 
@@ -18,71 +18,75 @@ Even if removed from the board, the memory contains no usable information — on
 | Specification | Description |
 |----------------|--------------|
 | **Chip model** | ST M24C64-WMN6TP |
-| **Capacity** | 64 Kbit (8,192 bytes) |
+| **Capacity** | 64 Kbit (8 192 bytes) |
 | **Interface** | I²C, 2-byte addressing |
-| **Endurance** | >1,000,000 write cycles |
-| **Data retention** | >40 years |
+| **Endurance** | > 1 000 000 write cycles |
+| **Data retention** | > 40 years |
 | **Operating voltage** | 1.8 V – 5.5 V |
 | **Page size** | 32 bytes |
 
-The chip communicates directly with the **SAMD21 microcontroller** through an encrypted protocol layer implemented in firmware.  
-The encryption and integrity checks happen **before** any data reaches the physical memory.
+All inter-chip communication uses I²C for memory access and USB HID for host interaction.  
+The I²C bus itself is not encrypted — instead, **data is encrypted in firmware before transmission**, ensuring confidentiality even if the bus were intercepted.
 
 ---
 
 ## Internal structure overview
 
-ZeroKeyUSB’s EEPROM is divided into several protected regions.  
-Each region serves a specific security purpose and cannot be accessed outside its defined boundaries.
+ZeroKeyUSB’s EEPROM is divided into isolated regions.  
+Each serves a dedicated security function and is accessed exclusively through firmware routines.
 
 | Address range | Size | Purpose |
 |----------------|------|----------|
-| `0x0000–0x0001` | 2 B | Internal flags / configuration marker |
-| `0x0002` | 1 B | Failed attempts counter |
+| `0x0000–0x0001` | 2 B | Configuration flags / setup marker |
+| `0x0002` | 1 B | **Failed-attempts counter** (persistent across power cycles) |
 | `0x0005–0x000C` | 8 B | PIN verification signature |
 | `0x0010–0x001F` | 16 B | AES Initialization Vector (IV) |
-| `0x0020–0x03FF` | — | Reserved system area |
-| `0x0400–0x1FFF` | — | Encrypted credential storage (user data) |
+| `0x0020–0x03DF` | ≈ 960 B | System & TOTP metadata (including 2 bytes per slot status) |
+| `0x03E0–0x03EF` | 8 B | Last TOTP epoch (Unix time, 64-bit) |
+| `0x0400–0x1FFF` | ≈ 7 KB | Encrypted credential storage (user data) |
 
-Each credential record occupies **three encrypted pages of 32 bytes each** (96 bytes total):
-1. **Site / service name**  
-2. **Username or email**  
-3. **Password**
+Each credential occupies **three 32-byte encrypted pages** (96 B total):
+1. Site / service name  
+2. Username or email  
+3. Password  
 
-Optionally, a fourth page is used to store the **TOTP secret** (for 2FA).
+An optional fourth page is used for the **TOTP secret** when 2FA is enabled.
 
 ---
 
 ## Data segmentation
 
-Segmenting data into separate encrypted pages offers several advantages:
+Storing each field in a separate encrypted page offers key advantages:
 
-- 🔐 **Independent encryption:** Each field (site, user, password) is encrypted separately.  
-- 🧩 **No correlation:** Attackers cannot guess password lengths or patterns by comparing blocks.  
-- 💥 **Corruption isolation:** If one page is damaged, others remain valid.  
-- ⚡ **Fast updates:** Editing a single field only rewrites one page, extending chip lifespan.
+- 🔐 **Independent encryption:** Every field (site, user, password, TOTP) is encrypted separately.  
+- 🧩 **No pattern correlation:** Even identical credentials produce different ciphertext.  
+- 💥 **Corruption isolation:** If a page fails, others remain intact.  
+- ⚡ **Efficient writes:** Editing one field only rewrites that page, prolonging EEPROM life.
 
 ---
 
 ## Security metadata
 
 ### 🔑 Initialization Vector (IV)
-A unique 16-byte random value generated from hardware entropy during first startup.  
-It ensures that even identical data encrypted twice produces completely different ciphertext.
+A unique 16-byte value generated from analog noise on a floating pin during first startup.  
+It ensures that even identical data encrypted twice produces different ciphertext.
 
 ### 🧩 PIN signature block
-A compact cryptographic fingerprint stored at address `0x0005`.  
-It allows ZeroKeyUSB to verify that the correct Master PIN has been entered — without storing the PIN itself.
+An 8-byte cryptographic fingerprint stored at address `0x0005`.  
+It lets ZeroKeyUSB verify the correct Master PIN without storing the PIN itself.
 
 ### 🕒 Failed-attempts counter
-Located at `0x0002`, this byte tracks the number of consecutive failed PIN entries.  
-It is used to calculate exponential lockout delays, protecting against brute-force attacks.
+Stored at `0x0002`, this byte tracks consecutive failed PIN entries.  
+If a user enters an incorrect PIN multiple times, the firmware applies exponential delays before the next attempt.  
+Because the counter is stored in EEPROM, lockout timers persist even after power cycling or unplugging the device.
+
+### ⏱️ Last TOTP epoch
+A 64-bit Unix timestamp representing the last synchronized time.  
+It allows offline TOTP generation without re-syncing on every use.
 
 ---
 
 ## Credential layout example
-
-Each credential slot follows this pattern inside the encrypted storage area:
 
 | Page | Content | Encrypted? | Size |
 |------|----------|------------|------|
@@ -93,34 +97,33 @@ Each credential slot follows this pattern inside the encrypted storage area:
 | — | — | — | — |
 | **Total per slot** | — | — | **96–128 B** |
 
-Up to **64 credentials** can be stored securely in the available memory space.
+Up to **64 credentials** fit securely within the 8 KB memory, depending on TOTP usage.
 
 ---
 
-## Data integrity and recovery
+## Data integrity and error handling
 
-Each write operation is immediately verified:
-- The firmware re-reads the page after writing.  
-- If data doesn’t match the encrypted checksum, it retries automatically.  
-- Any unrecoverable error triggers a message on screen (`EEPROM Error`) and safely aborts the process.
+Every EEPROM write is acknowledged at the I²C level to confirm success.  
+If a write fails or times out, the firmware retries automatically.  
+Persistent errors trigger an on-screen message (`EEPROM Error`) and abort the operation safely.
 
-ZeroKeyUSB never writes unencrypted or partial data — meaning your passwords are either **fully protected**, or **not stored at all**.
+ZeroKeyUSB never stores plaintext or partial records — credentials are either **fully encrypted** or **not written at all**.
 
 ---
 
 ## Why it matters
 
-Most password managers rely on software encryption and the operating system’s storage.  
-ZeroKeyUSB isolates everything in hardware, with:
-- A dedicated memory chip designed for **40+ years of retention**.  
-- Encryption handled by the **microcontroller itself**, not the host.  
-- No wireless or network interfaces to exploit.
+Typical password managers depend on OS storage and software encryption.  
+ZeroKeyUSB keeps everything in hardware, with:
 
-Even with physical access to the memory chip, forensic tools cannot decrypt or correlate any content without your unique PIN and IV.
+- A dedicated EEPROM rated for **40 + years of retention**.  
+- Encryption and IV generation handled by the **SAMD21 microcontroller**.  
+- No wireless interfaces and no Internet connectivity to exploit.
+
+Even with physical access to the memory chip, the contents cannot be decrypted without the correct PIN-derived key and IV.
 
 ---
 
 <Note>
-Transparency builds trust: the memory map is public so that users can verify the integrity of their device —  
-but all regions remain locked and encrypted during normal operation.
+Transparency builds trust: the memory map is public so that anyone can verify firmware behavior, yet all regions remain encrypted and locked during normal operation.
 </Note>
