@@ -1,0 +1,38 @@
+---
+title: "Integrity and Authenticity Verification"
+description: "The application verification process using hardware CRC32 and BLAKE2s MAC, including the penalty logic."
+---
+
+## Boot-Up Trust Chain
+
+The ZeroKeyUSB Bootloader executes a fast, cryptographic verification process before yielding control to the application firmware. This process ensures that the firmware **has not been altered (Integrity)** and **originates from an official source (Authenticity)**.
+
+### ⚡ Fast Integrity Check (Hardware CRC32)
+
+Verification is performed using the **DSU (Data Scrambling Unit)** hardware of the SAMD21 microcontroller for CRC32 calculation. This allows scanning the entire Flash memory at maximum bus speed:
+
+* **Cumulative CRC32:** The CRC32 is calculated efficiently chunk-by-chunk.
+* **Speed:** Minimizes boot time, ensuring the full verification takes only a few milliseconds.
+
+### 🔐 Cryptographic Authentication (BLAKE2s MAC)
+
+To ensure the firmware was signed by the secret key, the **BLAKE2s-128 MAC (Message Authentication Code) algorithm** is used.
+
+1.  **MAC in the Footer:** The final application firmware ends with a 28-byte **Security Footer**, which contains the final CRC32 and the pre-calculated BLAKE2s MAC.
+2.  **Recalculation:** The Bootloader recalculates the MAC over the entire application code using the embedded **secret key** (`ZK_SECRET_KEY`).
+3.  **Approval:** If the calculated MAC matches the MAC in the footer, authentication is successful.
+
+### 🛡️ Sanity and Range Checks
+
+Before cryptographic verification, pointer checks are executed to prevent redirection attacks:
+
+* **Stack Pointer (SP):** The initial address of the Stack Pointer is verified to be within the valid **SRAM** range.
+* **Reset Handler:** The application's start function address is checked to be within the **Flash** region reserved for firmware.
+
+### 🚨 Penalty for Unofficial Software (15 Seconds)
+
+For cases where the firmware has been altered or comes from an unsigned source, the Bootloader enforces a strict penalty policy:
+
+* **Verification Failure:** If the CRC32 or BLAKE2s MAC does not match, a **15,000 millisecond delay** (`PENALTY_DELAY_MS`) is applied using the *SysTick Timer*.
+* **Effect:** This delay discourages the use of unauthorized firmware and prevents fast reboot loops, offering a time window for the user to enter the flashing Bootloader mode.
+---

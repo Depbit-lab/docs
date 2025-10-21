@@ -1,0 +1,30 @@
+---
+title: "Offline Signer Tool"
+description: "Details on how the firmware is securely signed before distribution to ensure authenticity."
+---
+
+## Secure Signing Architecture
+
+To protect the **BLAKE2s Secret Key** (`ZK_SECRET_KEY`) and keep the WebTool public, ZeroKeyUSB uses an **Offline Signing** process.
+
+### 🔑 The Secret: Signing Key
+
+* **Residence:** The 32-byte secret key exists only within the private **Offline Signer Tool** and the device's Bootloader itself.
+* **Function:** The key is used to calculate the **BLAKE2s MAC** of the firmware.
+* **Security:** Since the WebTool is public, this approach ensures that **no user or attacker can extract the signing key** to create their own official firmware.
+
+### ✍️ Signing Process (Offline)
+
+1.  **Input:** The firmware binary (`firmware.bin`) ready for release.
+2.  **Calculation:** The tool calculates the **CRC32** and the **BLAKE2s MAC** (16 bytes) of the file.
+3.  **Footer Creation:** It assembles the **Security Footer** structure with the Magic Number, code length, CRC32, and MAC.
+4.  **Concatenation:** The footer is **concatenated** to the end of the firmware binary.
+5.  **Output:** A single **pre-signed binary file** (`firmware_signed_footer.bin`) is produced, ready to be uploaded by the public WebTool.
+
+### 📦 Reproducibility and Transparency
+
+Although the signing key is secret, the firmware remains **Open Source and auditable**. The process ensures that:
+
+* Only the development team can create a binary that the Bootloader accepts as official (skipping the 15-second delay).
+* The principle is maintained that **there are no remote signing or update mechanisms**.
+---

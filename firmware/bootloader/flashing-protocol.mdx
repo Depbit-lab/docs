@@ -1,0 +1,31 @@
+---
+title: "Flashing Protocol (WebTool)"
+description: "The WebTool now acts as a simple loader that transfers the pre-signed binary to the device and manages the reboot."
+---
+
+## WebTool: A Secure Loader
+
+The **WebTool** (the browser-based flasher) no longer calculates security features; it only acts as a transfer interface.
+
+### 📥 Input Files
+
+The WebTool should only receive **binary files (`*.bin`) that have already been pre-signed** by the Offline Signer Tool.
+
+* The file contains the application code **PLUS** the 28-byte Security Footer.
+
+### 🔄 Transfer Protocol
+
+The flashing process follows the traditional USB CDC protocol, treating the signed file as a single complete *payload*:
+
+1.  **Start:** The WebTool sends `HELLO` and then `ERASE APP` to clear the application space.
+2.  **Writing:** The WebTool sends the entire **signed file** in *chunks* using the command `WRITE addr len crc32` and the binary *payload*.
+3.  **Finalization:** The `DONE` command is sent.
+4.  **Activation:** The Bootloader receives the data, writes it to Flash (including the footer in its final location), and reboots.
+
+### ⏱️ Timeout Management
+
+To ensure the flashing process does not fail prematurely if unauthorized firmware is loaded, the WebTool waits for an extended period:
+
+* **Increased Delay:** The final waiting time after sending `DONE` has been extended to **20 seconds**.
+* **Purpose:** This time covers the 15-second delay imposed by the Bootloader if the authenticity check fails, ensuring the USB connection is not cut before the device can reboot or enter waiting mode.
+---
