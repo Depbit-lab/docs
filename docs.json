@@ -43,6 +43,14 @@
             "pages": [
               "firmware/architecture",
               {
+                "group": "Bootloader & Trust Chain",
+                "pages": [
+                  "firmware/bootloader/verification",
+                  "firmware/bootloader/signer-tool",
+                  "firmware/bootloader/flashing-protocol"
+                ]
+              },
+              {
                 "group": "Core Modules",
                 "pages": [
                   "firmware/menu",
